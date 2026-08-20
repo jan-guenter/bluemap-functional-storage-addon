@@ -11,14 +11,20 @@ BlueMap renderer. Read this file and `README.md` before changing the project.
   in `provenance/upstreams.json`: Functional Storage 1.5.8 and Titanium 4.0.45.
 - Own exactly the ten block IDs in the packaged profile. Each host must have a
   same-named block-entity ID and a legal exact-profile orientation state.
-- Read only `framedDrawerModelData`. Validate `particle`; substitute only
-  `front`, `side`, and `front_divider` in installed child-shell resources.
+- Read only `framedDrawerModelData`. Absent, null, or empty data is the native
+  installed shell; non-empty styled data must contain exactly `particle`,
+  `front`, `side`, and `front_divider`. Validate all four materials and
+  substitute only the three face roles that have an installed child.
 - Preserve installed native `tank` and `display` children and the ordinary
-  installed lock overlay. Dynamic contents, fluids, counts, upgrades, status,
-  range/link state, particles, and animations remain excluded.
+  installed lock overlay, including exact native controller-display animation.
+  Dynamic contents, fluids, counts, upgrades, status, range/link state,
+  particles, and persisted target-material animation remain excluded.
 - Material admission is an ordinary one-layer canonical full-cube BlockItem
-  default state. Any unknown artifact, host, block entity, state, NBT, item,
-  model, texture, or capacity failure falls back atomically to stock rendering.
+  default state with non-animated opaque textures. Effective installed child
+  geometry must match the exact artifact-derived structural signature; stable
+  texture-key PNG overrides remain allowed. Any unknown artifact, host, block
+  entity, state, NBT, item, model, texture, or capacity failure falls back
+  atomically to stock rendering.
 - Runtime code may interpret operator-installed assets but must not package
   Functional Storage, Titanium, Minecraft, or other upstream assets/classes.
   Production source is MIT. Do not copy Functional Storage source or the LGPL

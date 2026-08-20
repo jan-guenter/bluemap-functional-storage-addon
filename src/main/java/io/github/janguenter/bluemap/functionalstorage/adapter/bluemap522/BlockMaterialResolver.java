@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: MIT
  *
  * The conservative material proof adapts owner-controlled MIT code from the
- * Sophisticated and FramedBlocks add-ons. No candidate implementation is used.
+ * Sophisticated add-on. No candidate implementation is used.
  */
 package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
 
@@ -124,8 +124,9 @@ final class BlockMaterialResolver {
         return true;
     }
 
-    private static boolean canonicalOpaque(Texture texture) {
-        return texture != null && !texture.isHalfTransparent()
+    static boolean canonicalOpaque(Texture texture) {
+        return texture != null && texture.getAnimation() == null
+                && !texture.isHalfTransparent()
                 && texture.getColorStraight().a >= 1F;
     }
 }

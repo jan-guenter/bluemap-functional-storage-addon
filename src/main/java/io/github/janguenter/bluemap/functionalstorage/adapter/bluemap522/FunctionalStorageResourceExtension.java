@@ -52,6 +52,7 @@ final class FunctionalStorageResourceExtension implements ResourcePackExtension 
         }
         Optional<Path> functionalStorage = ExactArtifactDetector.find(
                 bounded,
+                "functionalstorage",
                 FunctionalStorageProfile.FUNCTIONAL_STORAGE_SIZE,
                 FunctionalStorageProfile.FUNCTIONAL_STORAGE_SHA256
         );
@@ -61,6 +62,7 @@ final class FunctionalStorageResourceExtension implements ResourcePackExtension 
         }
         if (ExactArtifactDetector.find(
                 bounded,
+                "titanium",
                 FunctionalStorageProfile.TITANIUM_SIZE,
                 FunctionalStorageProfile.TITANIUM_SHA256
         ).isEmpty()) {

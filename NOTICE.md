@@ -6,7 +6,8 @@ This project reuses and adapts small implementation patterns from these
 owner-controlled MIT projects:
 
 - `bluemap-sophisticated-addon`: conservative block-material resolution,
-  resource-model mesh emission, and atomic stock fallback;
+  resource-model mesh emission, atomic stock fallback, and bounded exact-mod
+  artifact identification;
 - `bluemap-mekanism-addon`: installed-artifact JSON child-model parsing;
 - `bluemap-glassential-addon`: reflection-only registered-default-state
   resolution at the Minecraft runtime boundary.

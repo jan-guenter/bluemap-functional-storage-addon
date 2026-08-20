@@ -10,9 +10,11 @@ import io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522.Functio
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FramedMaterialSnapshotDecoderTest {
@@ -23,43 +25,65 @@ class FramedMaterialSnapshotDecoderTest {
     @Test
     void acceptsExactStrictDrawerCompound() throws ReflectiveOperationException {
         String id = "functionalstorage:framed_2";
-        var data = data(id, "minecraft:oak_planks", "minecraft:oak_planks",
-                "minecraft:bricks", "minecraft:gold_block");
+        var data = data(id, styled());
         FramedMaterialSnapshot snapshot = decoder.decode(drawer(id), data).orElseThrow();
+        assertEquals(FramedMaterialSnapshot.Mode.STYLED, snapshot.mode());
         assertEquals("minecraft:oak_planks", snapshot.particle());
         assertEquals("minecraft:gold_block", snapshot.frontDivider());
     }
 
     @Test
-    void particleIsRequiredEvenThoughItIsNotVisibleGeometry()
+    void absentAndEmptyCompoundsNormalizeToNativeDesign()
             throws ReflectiveOperationException {
         String id = "functionalstorage:framed_1";
-        var data = data(id, null, "minecraft:oak_planks",
-                "minecraft:bricks", null);
-        assertTrue(decoder.decode(drawer(id), data).isEmpty());
+        FramedMaterialSnapshot absent = decoder.decode(
+                drawer(id), data(id)
+        ).orElseThrow();
+        FramedMaterialSnapshot empty = decoder.decode(
+                drawer(id), data(id, Map.of())
+        ).orElseThrow();
+
+        assertTrue(absent.isNative());
+        assertTrue(empty.isNative());
+        assertNull(absent.particle());
+        assertNull(empty.frontDivider());
     }
 
     @Test
-    void dividerHostRequiresDivider() throws ReflectiveOperationException {
-        String id = "functionalstorage:framed_fluid_4";
-        var data = data(id, "minecraft:oak_planks", "minecraft:oak_planks",
-                "minecraft:bricks", null);
-        assertTrue(decoder.decode(drawer(id), data).isEmpty());
+    void styledCompoundRequiresAllFourCanonicalItemKeys()
+            throws ReflectiveOperationException {
+        String id = "functionalstorage:framed_1";
+        for (String key : styled().keySet()) {
+            Map<String, String> incomplete = new LinkedHashMap<>(styled());
+            incomplete.remove(key);
+            assertTrue(decoder.decode(drawer(id), data(id, incomplete)).isEmpty());
+        }
+    }
+
+    @Test
+    void rejectsTankDisplayAndEveryOtherUnknownCompoundKey()
+            throws ReflectiveOperationException {
+        String id = "functionalstorage:framed_fluid_2";
+        for (String key : new String[]{"tank", "display", "unexpected"}) {
+            Map<String, String> adversarial = new LinkedHashMap<>(styled());
+            adversarial.put(key, "minecraft:stone");
+            assertTrue(decoder.decode(
+                    drawer(id), data(id, adversarial)
+            ).isEmpty());
+        }
     }
 
     @Test
     void rejectsWrongBlockEntityIdentityAndIllegalState()
             throws ReflectiveOperationException {
         String id = "functionalstorage:framed_1";
-        var data = data("functionalstorage:framed_2", "minecraft:oak_planks",
-                "minecraft:oak_planks", "minecraft:bricks", null);
+        var data = data("functionalstorage:framed_2", styled());
         assertTrue(decoder.decode(drawer(id), data).isEmpty());
         BlockState illegal = new BlockState(Key.parse(id), Map.of(
                 "facing", "north", "subfacing", "east", "locked", "false"
         ));
         assertTrue(decoder.decode(illegal,
-                data(id, "minecraft:oak_planks", "minecraft:oak_planks",
-                        "minecraft:bricks", null)).isEmpty());
+                data(id, styled())).isEmpty());
     }
 
     private static BlockState drawer(String id) {
@@ -68,21 +92,29 @@ class FramedMaterialSnapshotDecoderTest {
         ));
     }
 
-    private static FunctionalStorageBlockEntityData data(
-            String id,
-            String particle,
-            String side,
-            String front,
-            String divider
-    ) throws ReflectiveOperationException {
+    private static Map<String, String> styled() {
+        Map<String, String> result = new LinkedHashMap<>();
+        result.put("particle", "minecraft:oak_planks");
+        result.put("side", "minecraft:oak_planks");
+        result.put("front", "minecraft:bricks");
+        result.put("front_divider", "minecraft:gold_block");
+        return result;
+    }
+
+    private static FunctionalStorageBlockEntityData data(String id)
+            throws ReflectiveOperationException {
         FunctionalStorageBlockEntityData data = new FunctionalStorageBlockEntityData();
         set(MCABlockEntity.class, data, "id", Key.parse(id));
-        var raw = new FunctionalStorageBlockEntityData.FramedDrawerModelData();
-        set(raw.getClass(), raw, "particle", particle);
-        set(raw.getClass(), raw, "side", side);
-        set(raw.getClass(), raw, "front", front);
-        set(raw.getClass(), raw, "frontDivider", divider);
-        set(data.getClass(), data, "framedDrawerModelData", raw);
+        return data;
+    }
+
+    private static FunctionalStorageBlockEntityData data(
+            String id,
+            Map<String, String> modelData
+    ) throws ReflectiveOperationException {
+        FunctionalStorageBlockEntityData data = data(id);
+        set(data.getClass(), data, "framedDrawerModelData",
+                new LinkedHashMap<>(modelData));
         return data;
     }
 

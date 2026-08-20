@@ -31,7 +31,7 @@
     }
   ],
   "ownerCodePatterns": [
-    "bluemap-sophisticated-addon BlockMaterialResolver/JsonModelEmitter",
+    "bluemap-sophisticated-addon BlockMaterialResolver/JsonModelEmitter/exact-mod detector",
     "bluemap-mekanism-addon installed-artifact child JSON parsing",
     "bluemap-glassential-addon reflection-only default-state resolver"
   ],

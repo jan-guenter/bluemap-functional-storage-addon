@@ -47,7 +47,7 @@ final class FunctionalStorageRenderer implements BlockRenderer {
         this.resourcePack = resourcePack;
         this.runtime = runtime;
         this.stock = new ResourceModelRenderer(resourcePack, textures, settings);
-        this.emitter = new ChildShellEmitter(resourcePack, textures);
+        this.emitter = new ChildShellEmitter(resourcePack, textures, settings);
         BlockItemDefaultStateResolver itemResolver =
                 BlockItemDefaultStateResolver.createVerified();
         this.materials = itemResolver == null
@@ -72,7 +72,7 @@ final class FunctionalStorageRenderer implements BlockRenderer {
                 resetAndRenderStock(block, target, start, mapColor, initialMapColor);
             }
         } catch (MaxCapacityReachedException exception) {
-            resetPartial(target, start, mapColor, initialMapColor);
+            resetPartialGeometry(target, start, mapColor, initialMapColor);
             throw exception;
         } catch (RuntimeException | LinkageError exception) {
             runtime.report("render-failed-" + exception.getClass().getSimpleName());
@@ -85,8 +85,7 @@ final class FunctionalStorageRenderer implements BlockRenderer {
             TileModelView target,
             Color mapColor
     ) {
-        if (materials == null) {
-            runtime.report("minecraft-blockitem-boundary-unavailable");
+        if (!ordinaryHostProperties(block.getProperties())) {
             return false;
         }
         BlockState hostState = block.getBlockState();
@@ -105,38 +104,76 @@ final class FunctionalStorageRenderer implements BlockRenderer {
         }
 
         FramedMaterialSnapshot snapshot = decoded.orElseThrow();
-        if (materials.resolve(snapshot.particle(), block).isEmpty()) {
-            return false;
-        }
-        Optional<ResolvedBlockMaterial> side = materials.resolve(snapshot.side(), block);
-        Optional<ResolvedBlockMaterial> front = materials.resolve(snapshot.front(), block);
-        if (side.isEmpty() || front.isEmpty()) {
-            return false;
-        }
-        Map<String, ResolvedBlockMaterial> substitutions = new HashMap<>();
-        substitutions.put("side", side.orElseThrow());
-        substitutions.put("front", front.orElseThrow());
-        if (profile.needsDivider()) {
+        Map<String, ResolvedBlockMaterial> substitutions;
+        if (snapshot.isNative()) {
+            substitutions = Map.of();
+        } else {
+            if (materials == null) {
+                runtime.report("minecraft-blockitem-boundary-unavailable");
+                return false;
+            }
+            if (materials.resolve(snapshot.particle(), block).isEmpty()) {
+                return false;
+            }
+            Optional<ResolvedBlockMaterial> side =
+                    materials.resolve(snapshot.side(), block);
+            Optional<ResolvedBlockMaterial> front =
+                    materials.resolve(snapshot.front(), block);
             Optional<ResolvedBlockMaterial> divider =
                     materials.resolve(snapshot.frontDivider(), block);
-            if (divider.isEmpty()) {
+            if (side.isEmpty() || front.isEmpty() || divider.isEmpty()) {
                 return false;
             }
-            substitutions.put("front_divider", divider.orElseThrow());
+            substitutions = new HashMap<>();
+            substitutions.put("side", side.orElseThrow());
+            substitutions.put("front", front.orElseThrow());
+            if (profile.needsDivider()) {
+                substitutions.put("front_divider", divider.orElseThrow());
+            }
         }
 
-        int customStart = target.getTileModel().size();
+        MapColorAccumulator mainColors = new MapColorAccumulator();
+        if (!emitInstalledChildren(
+                snapshot, children, substitutions,
+                (child, material, nativeDesign) -> nativeDesign
+                        ? emitter.emitNative(
+                                child, variants.main(), block, target, mainColors)
+                        : emitter.emitStyled(
+                                child, material, variants.main(), block, target, mainColors)
+        )) {
+            return false;
+        }
+        Color mainColor = new Color();
+        mainColors.finish(mainColor);
+        Color lockColor = null;
+        if (variants.lock() != null) {
+            lockColor = new Color().set(0F, 0F, 0F, 0F, true);
+            Color finalLockColor = lockColor;
+            renderAtFreshBoundary(target, () -> stock.render(
+                    block, variants.lock(), target, finalLockColor
+            ));
+        }
+        MapColorAccumulator.combineVariants(mapColor, mainColor, lockColor);
+        return true;
+    }
+
+    static boolean emitInstalledChildren(
+            FramedMaterialSnapshot snapshot,
+            List<ChildShellCatalog.Child> children,
+            Map<String, ResolvedBlockMaterial> substitutions,
+            InstalledChildEmitter emission
+    ) {
+        if (snapshot == null || children == null || children.isEmpty()
+                || substitutions == null || emission == null) {
+            return false;
+        }
         for (ChildShellCatalog.Child child : children) {
-            ResolvedBlockMaterial material = substitutions.get(child.name());
-            if (!emitter.emit(
-                    child, material, variants.main(), block, target, mapColor)) {
+            if (!emission.emit(
+                    child, substitutions.get(child.name()), snapshot.isNative())) {
                 return false;
             }
         }
-        if (variants.lock() != null) {
-            stock.render(block, variants.lock(), target, mapColor);
-        }
-        return target.getTileModel().size() > customStart;
+        return true;
     }
 
     private InstalledVariants selectedVariants(
@@ -198,6 +235,12 @@ final class FunctionalStorageRenderer implements BlockRenderer {
                 && quarterTurn(variant.getZ());
     }
 
+    static boolean ordinaryHostProperties(
+            de.bluecolored.bluemap.core.world.BlockProperties properties
+    ) {
+        return properties != null && !properties.isRandomOffset();
+    }
+
     private static boolean sameTransform(Variant left, Variant right) {
         return Float.compare(left.getX(), right.getX()) == 0
                 && Float.compare(left.getY(), right.getY()) == 0
@@ -217,16 +260,16 @@ final class FunctionalStorageRenderer implements BlockRenderer {
             Color mapColor,
             Color initialMapColor
     ) {
-        resetPartial(target, start, mapColor, initialMapColor);
+        resetPartialGeometry(target, start, mapColor, initialMapColor);
         try {
             renderStock(block, target, mapColor);
         } catch (MaxCapacityReachedException exception) {
-            resetPartial(target, start, mapColor, initialMapColor);
+            resetPartialGeometry(target, start, mapColor, initialMapColor);
             throw exception;
         }
     }
 
-    private void resetPartial(
+    static void resetPartialGeometry(
             TileModelView target,
             int start,
             Color mapColor,
@@ -235,6 +278,11 @@ final class FunctionalStorageRenderer implements BlockRenderer {
         target.getTileModel().reset(start);
         target.initialize(start);
         mapColor.set(initialMapColor);
+    }
+
+    static void renderAtFreshBoundary(TileModelView target, Runnable renderVariant) {
+        target.initialize();
+        renderVariant.run();
     }
 
     private void renderStock(
@@ -247,12 +295,32 @@ final class FunctionalStorageRenderer implements BlockRenderer {
         if (raw == null) {
             return;
         }
+        List<Color> variantColors = new ArrayList<>();
         raw.forEach(
                 block.getBlockState(), block.getX(), block.getY(), block.getZ(),
-                variant -> stock.render(block, variant, target, mapColor)
+                variant -> {
+                    Color variantColor = new Color().set(0F, 0F, 0F, 0F, true);
+                    renderAtFreshBoundary(target, () -> stock.render(
+                            block, variant, target, variantColor
+                    ));
+                    variantColors.add(variantColor);
+                }
+        );
+        MapColorAccumulator.combineVariants(
+                mapColor, variantColors.toArray(Color[]::new)
         );
     }
 
     private record InstalledVariants(Variant main, Variant lock) {
+    }
+
+    @FunctionalInterface
+    interface InstalledChildEmitter {
+
+        boolean emit(
+                ChildShellCatalog.Child child,
+                ResolvedBlockMaterial material,
+                boolean nativeDesign
+        );
     }
 }

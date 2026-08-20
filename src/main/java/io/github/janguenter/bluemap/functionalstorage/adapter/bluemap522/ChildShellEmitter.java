@@ -10,6 +10,7 @@ package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector4f;
 import de.bluecolored.bluemap.core.map.TextureGallery;
+import de.bluecolored.bluemap.core.map.hires.RenderSettings;
 import de.bluecolored.bluemap.core.map.hires.TileModel;
 import de.bluecolored.bluemap.core.map.hires.TileModelView;
 import de.bluecolored.bluemap.core.resources.ResourcePath;
@@ -21,9 +22,9 @@ import de.bluecolored.bluemap.core.resources.pack.resourcepack.model.Model;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.texture.Texture;
 import de.bluecolored.bluemap.core.util.Direction;
 import de.bluecolored.bluemap.core.util.Key;
-import de.bluecolored.bluemap.core.util.math.Color;
 import de.bluecolored.bluemap.core.util.math.MatrixM4f;
 import de.bluecolored.bluemap.core.world.block.BlockNeighborhood;
+import de.bluecolored.bluemap.core.world.block.ExtendedBlock;
 import io.github.janguenter.bluemap.functionalstorage.model.ChildShellCatalog;
 
 import java.util.ArrayList;
@@ -37,33 +38,61 @@ final class ChildShellEmitter {
 
     private final ResourcePack resourcePack;
     private final TextureGallery textures;
+    private final RenderSettings settings;
 
-    ChildShellEmitter(ResourcePack resourcePack, TextureGallery textures) {
+    ChildShellEmitter(
+            ResourcePack resourcePack,
+            TextureGallery textures,
+            RenderSettings settings
+    ) {
         this.resourcePack = resourcePack;
         this.textures = textures;
+        this.settings = settings;
     }
 
-    boolean emit(
+    boolean emitNative(
+            ChildShellCatalog.Child child,
+            Variant variant,
+            BlockNeighborhood block,
+            TileModelView target,
+            MapColorAccumulator mapColor
+    ) {
+        return emit(child, null, false, variant, block, target, mapColor);
+    }
+
+    boolean emitStyled(
             ChildShellCatalog.Child child,
             ResolvedBlockMaterial material,
             Variant variant,
             BlockNeighborhood block,
             TileModelView target,
-            Color mapColor
+            MapColorAccumulator mapColor
+    ) {
+        return emit(child, material, true, variant, block, target, mapColor);
+    }
+
+    private boolean emit(
+            ChildShellCatalog.Child child,
+            ResolvedBlockMaterial material,
+            boolean substituteMaterial,
+            Variant variant,
+            BlockNeighborhood block,
+            TileModelView target,
+            MapColorAccumulator mapColor
     ) {
         Model model = resourcePack.getModels().get(child.parent());
-        if (!preflight(child, material, model, variant)) {
+        if (!preflight(child, material, substituteMaterial, model, variant)) {
             return false;
         }
         int modelStart = target.getTileModel().size();
-        boolean emitted = false;
         for (Element element : model.getElements()) {
             if (element == null) {
                 continue;
             }
             int elementStart = target.getTileModel().size();
-            emitted |= emitElement(
-                    child, material, model, element, variant, block, target, mapColor
+            emitElement(
+                    child, material, substituteMaterial, model, element,
+                    variant, block, target, mapColor
             );
             int elementCount = target.getTileModel().size() - elementStart;
             if (elementCount > 0) {
@@ -78,16 +107,18 @@ final class ChildShellEmitter {
             target.initialize(modelStart).transform(variant.getTransformMatrix());
         }
         target.initialize(modelStart);
-        return emitted;
+        return true;
     }
 
     private boolean preflight(
             ChildShellCatalog.Child child,
             ResolvedBlockMaterial material,
+            boolean substituteMaterial,
             Model model,
             Variant variant
     ) {
-        if (child.material() != (material != null)
+        if ((substituteMaterial && child.material() != (material != null))
+                || (!substituteMaterial && material != null)
                 || model == null || model.getElements() == null
                 || model.getElements().length == 0) {
             return false;
@@ -100,12 +131,20 @@ final class ChildShellEmitter {
             for (Map.Entry<Direction, Face> entry : element.getFaces().entrySet()) {
                 faceFound = true;
                 ResolvedBlockMaterial.Face replacement = replacement(
-                        child, material, entry.getValue(), entry.getKey(), variant
+                        child, material, substituteMaterial,
+                        entry.getValue(), entry.getKey(), element, variant
                 );
+                if (requiresReplacement(
+                        child, substituteMaterial, entry.getValue())
+                        && replacement == null) {
+                    return false;
+                }
                 Key texture = replacement == null
                         ? textureKey(model, entry.getValue(), child.textures())
                         : replacement.texture();
-                if (texture == null || resourcePack.getTextures().get(texture) == null) {
+                Texture resource = texture == null
+                        ? null : resourcePack.getTextures().get(texture);
+                if (resource == null) {
                     return false;
                 }
             }
@@ -116,12 +155,13 @@ final class ChildShellEmitter {
     private boolean emitElement(
             ChildShellCatalog.Child child,
             ResolvedBlockMaterial material,
+            boolean substituteMaterial,
             Model model,
             Element element,
             Variant variant,
             BlockNeighborhood block,
             TileModelView target,
-            Color mapColor
+            MapColorAccumulator mapColor
     ) {
         Vector3f from = element.getFrom();
         Vector3f to = element.getTo();
@@ -132,22 +172,28 @@ final class ChildShellEmitter {
         float y1 = to.getY();
         float z1 = to.getZ();
         boolean emitted = false;
-        emitted |= emitFace(child, material, model, element, Direction.DOWN,
+        emitted |= emitFace(child, material, substituteMaterial,
+                model, element, Direction.DOWN,
                 variant, block, target, mapColor,
                 x0, y0, z0, x1, y0, z0, x1, y0, z1, x0, y0, z1);
-        emitted |= emitFace(child, material, model, element, Direction.UP,
+        emitted |= emitFace(child, material, substituteMaterial,
+                model, element, Direction.UP,
                 variant, block, target, mapColor,
                 x0, y1, z1, x1, y1, z1, x1, y1, z0, x0, y1, z0);
-        emitted |= emitFace(child, material, model, element, Direction.NORTH,
+        emitted |= emitFace(child, material, substituteMaterial,
+                model, element, Direction.NORTH,
                 variant, block, target, mapColor,
                 x1, y0, z0, x0, y0, z0, x0, y1, z0, x1, y1, z0);
-        emitted |= emitFace(child, material, model, element, Direction.SOUTH,
+        emitted |= emitFace(child, material, substituteMaterial,
+                model, element, Direction.SOUTH,
                 variant, block, target, mapColor,
                 x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1);
-        emitted |= emitFace(child, material, model, element, Direction.WEST,
+        emitted |= emitFace(child, material, substituteMaterial,
+                model, element, Direction.WEST,
                 variant, block, target, mapColor,
                 x0, y0, z0, x0, y0, z1, x0, y1, z1, x0, y1, z0);
-        emitted |= emitFace(child, material, model, element, Direction.EAST,
+        emitted |= emitFace(child, material, substituteMaterial,
+                model, element, Direction.EAST,
                 variant, block, target, mapColor,
                 x1, y0, z1, x1, y0, z0, x1, y1, z0, x1, y1, z1);
         return emitted;
@@ -156,13 +202,14 @@ final class ChildShellEmitter {
     private boolean emitFace(
             ChildShellCatalog.Child child,
             ResolvedBlockMaterial material,
+            boolean substituteMaterial,
             Model model,
             Element element,
             Direction direction,
             Variant variant,
             BlockNeighborhood block,
             TileModelView target,
-            Color mapColor,
+            MapColorAccumulator mapColor,
             float ax, float ay, float az,
             float bx, float by, float bz,
             float cx, float cy, float cz,
@@ -172,8 +219,15 @@ final class ChildShellEmitter {
         if (face == null) {
             return false;
         }
+        FaceLighting.Sample light = FaceLighting.sample(
+                block, direction, variant, element.getLightEmission()
+        );
+        float upward = upwardNormal(direction, element, variant);
+        if (!visible(face, upward, light, block, variant, settings)) {
+            return false;
+        }
         ResolvedBlockMaterial.Face replacement = replacement(
-                child, material, face, direction, variant
+                child, material, substituteMaterial, face, direction, element, variant
         );
         Key textureKey = replacement == null
                 ? textureKey(model, face, child.textures()) : replacement.texture();
@@ -198,23 +252,24 @@ final class ChildShellEmitter {
         float blue = (argb & 0xFF) / 255F;
         mesh.setColor(start, red, green, blue);
         mesh.setColor(start + 1, red, green, blue);
-        mesh.setAOs(start, 1F, 1F, 1F);
-        mesh.setAOs(start + 1, 1F, 1F, 1F);
+        float aoA = ambientOcclusion(model, element, direction, block, variant,
+                ax, ay, az);
+        float aoB = ambientOcclusion(model, element, direction, block, variant,
+                bx, by, bz);
+        float aoC = ambientOcclusion(model, element, direction, block, variant,
+                cx, cy, cz);
+        float aoD = ambientOcclusion(model, element, direction, block, variant,
+                dx, dy, dz);
+        mesh.setAOs(start, aoA, aoB, aoC);
+        mesh.setAOs(start + 1, aoA, aoC, aoD);
 
-        FaceLighting.Sample light = FaceLighting.sample(
-                block, direction, variant, element.getLightEmission()
-        );
         mesh.setSunlight(start, light.sunlight());
         mesh.setSunlight(start + 1, light.sunlight());
-        mesh.setBlocklight(start, light.blocklight());
-        mesh.setBlocklight(start + 1, light.blocklight());
+        mesh.setBlocklight(start, light.emissiveBlocklight());
+        mesh.setBlocklight(start + 1, light.emissiveBlocklight());
 
-        if (transformedDirection(direction, variant) == Direction.UP) {
-            Color average = new Color().set(texture.getColorPremultiplied());
-            average.r *= red;
-            average.g *= green;
-            average.b *= blue;
-            mapColor.add(average);
+        if (upward > 0.01F) {
+            mapColor.add(texture, argb, light, settings.getAmbientLight());
         }
         return true;
     }
@@ -222,13 +277,23 @@ final class ChildShellEmitter {
     private static ResolvedBlockMaterial.Face replacement(
             ChildShellCatalog.Child child,
             ResolvedBlockMaterial material,
+            boolean substituteMaterial,
             Face face,
             Direction direction,
+            Element element,
             Variant variant
     ) {
-        return child.material() && child.name().equals(
-                face.getTexture().getReferenceName())
-                ? material.face(transformedDirection(direction, variant)) : null;
+        return requiresReplacement(child, substituteMaterial, face)
+                ? material.face(transformedDirection(direction, element, variant)) : null;
+    }
+
+    private static boolean requiresReplacement(
+            ChildShellCatalog.Child child,
+            boolean substituteMaterial,
+            Face face
+    ) {
+        return substituteMaterial && child.material() && child.name().equals(
+                face.getTexture().getReferenceName());
     }
 
     private static Key textureKey(Model model, Face face, Map<String, Key> overrides) {
@@ -239,6 +304,123 @@ final class ChildShellEmitter {
         ResourcePath<Texture> path = face.getTexture()
                 .getTexturePath(model.getTextures()::get);
         return path;
+    }
+
+    private float ambientOcclusion(
+            Model model,
+            Element element,
+            Direction direction,
+            BlockNeighborhood block,
+            Variant variant,
+            float x,
+            float y,
+            float z
+    ) {
+        return model.isAmbientocclusion()
+                ? testAo(x, y, z, direction, block, variant) : 1F;
+    }
+
+    static boolean visible(
+            Face face,
+            float upward,
+            FaceLighting.Sample light,
+            BlockNeighborhood block,
+            Variant variant,
+            RenderSettings settings
+    ) {
+        if (settings.isRenderTopOnly() && upward < 0.01F) {
+            return false;
+        }
+        if (face.getCullface() != null) {
+            ExtendedBlock neighbor = relativeBlock(block, face.getCullface(), variant);
+            if (neighbor.getProperties().isCulling()
+                    || (neighbor.getProperties().getCullingIdentical()
+                    && neighbor.getBlockState().equals(block.getBlockState()))) {
+                return false;
+            }
+        }
+        return !block.isRemoveIfCave()
+                || (settings.isCaveDetectionUsesBlockLight()
+                        ? Math.max(light.blocklight(), light.sunlight())
+                        : light.sunlight()) != 0;
+    }
+
+    private static float upwardNormal(
+            Direction direction,
+            Element element,
+            Variant variant
+    ) {
+        return variantVector(direction, element, variant).y();
+    }
+
+    static float testAo(
+            float x,
+            float y,
+            float z,
+            Direction direction,
+            BlockNeighborhood block,
+            Variant variant
+    ) {
+        int offsetX = boundaryOffset(x);
+        int offsetY = boundaryOffset(y);
+        int offsetZ = boundaryOffset(z);
+        var normal = direction.toVector();
+        int occluding = 0;
+        if (offsetX * normal.getX() + offsetY * normal.getY() > 0
+                && relativeBlock(block, offsetX, offsetY, 0, variant)
+                .getProperties().isOccluding()) {
+            occluding++;
+        }
+        if (offsetX * normal.getX() + offsetZ * normal.getZ() > 0
+                && relativeBlock(block, offsetX, 0, offsetZ, variant)
+                .getProperties().isOccluding()) {
+            occluding++;
+        }
+        if (offsetY * normal.getY() + offsetZ * normal.getZ() > 0
+                && relativeBlock(block, 0, offsetY, offsetZ, variant)
+                .getProperties().isOccluding()) {
+            occluding++;
+        }
+        if (offsetX * normal.getX() + offsetY * normal.getY()
+                + offsetZ * normal.getZ() > 0
+                && relativeBlock(block, offsetX, offsetY, offsetZ, variant)
+                .getProperties().isOccluding()) {
+            occluding++;
+        }
+        return 1F - Math.min(occluding, 3) * 0.25F;
+    }
+
+    private static int boundaryOffset(float coordinate) {
+        if (coordinate == 16F) {
+            return 1;
+        }
+        return coordinate == 0F ? -1 : 0;
+    }
+
+    private static ExtendedBlock relativeBlock(
+            BlockNeighborhood block,
+            Direction direction,
+            Variant variant
+    ) {
+        var vector = direction.toVector();
+        return relativeBlock(
+                block, vector.getX(), vector.getY(), vector.getZ(), variant
+        );
+    }
+
+    private static ExtendedBlock relativeBlock(
+            BlockNeighborhood block,
+            int x,
+            int y,
+            int z,
+            Variant variant
+    ) {
+        Vec relative = variantVector(new Vec(x, y, z), variant);
+        return block.getNeighborBlock(
+                Math.round(relative.x()),
+                Math.round(relative.y()),
+                Math.round(relative.z())
+        );
     }
 
     private static void setUvs(
@@ -308,6 +490,18 @@ final class ChildShellEmitter {
 
     static Direction transformedDirection(Direction direction, Variant variant) {
         Vec vector = variantVector(direction, variant);
+        return nearestDirection(vector);
+    }
+
+    private static Direction transformedDirection(
+            Direction direction,
+            Element element,
+            Variant variant
+    ) {
+        return nearestDirection(variantVector(direction, element, variant));
+    }
+
+    private static Direction nearestDirection(Vec vector) {
         float x = Math.abs(vector.x());
         float y = Math.abs(vector.y());
         float z = Math.abs(vector.z());
@@ -321,7 +515,28 @@ final class ChildShellEmitter {
     }
 
     private static Vec variantVector(Direction direction, Variant variant) {
-        Vec vector = vector(direction);
+        return variantVector(vector(direction), variant);
+    }
+
+    private static Vec variantVector(
+            Direction direction,
+            Element element,
+            Variant variant
+    ) {
+        MatrixM4f elementMatrix = element.getRotation().getMatrix();
+        Vec local = vector(direction);
+        Vec rotated = new Vec(
+                elementMatrix.m00 * local.x() + elementMatrix.m01 * local.y()
+                        + elementMatrix.m02 * local.z(),
+                elementMatrix.m10 * local.x() + elementMatrix.m11 * local.y()
+                        + elementMatrix.m12 * local.z(),
+                elementMatrix.m20 * local.x() + elementMatrix.m21 * local.y()
+                        + elementMatrix.m22 * local.z()
+        );
+        return variantVector(rotated, variant);
+    }
+
+    private static Vec variantVector(Vec vector, Variant variant) {
         MatrixM4f matrix = variant.getTransformMatrix();
         return new Vec(
                 matrix.m00 * vector.x() + matrix.m01 * vector.y() + matrix.m02 * vector.z(),

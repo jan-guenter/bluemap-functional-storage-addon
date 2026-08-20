@@ -8,10 +8,16 @@ import de.bluecolored.bluemap.core.world.BlockState;
 import io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522.FunctionalStorageBlockEntityData;
 import io.github.janguenter.bluemap.functionalstorage.profile.FunctionalStorageProfile;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /** Converts only the exact persisted compound and exact host/BE/state tuple. */
 public final class FramedMaterialSnapshotDecoder {
+
+    private static final Set<String> STYLED_KEYS = Set.of(
+            "particle", "side", "front", "front_divider"
+    );
 
     public Optional<FramedMaterialSnapshot> decode(
             BlockState host,
@@ -23,23 +29,24 @@ public final class FramedMaterialSnapshotDecoder {
                 || !FunctionalStorageProfile.legalState(host)) {
             return Optional.empty();
         }
-        FunctionalStorageProfile.Host profile =
-                FunctionalStorageProfile.HOSTS.get(host.getId().getFormatted());
-        FunctionalStorageBlockEntityData.FramedDrawerModelData raw =
-                data.framedDrawerModelData();
-        if (profile == null || raw == null
-                || !itemId(raw.particle())
-                || !itemId(raw.side())
-                || !itemId(raw.front())) {
+        if (!FunctionalStorageProfile.HOSTS.containsKey(
+                host.getId().getFormatted())) {
             return Optional.empty();
         }
-        String divider = raw.frontDivider();
-        if ((profile.needsDivider() && !itemId(divider))
-                || (!profile.needsDivider() && divider != null && !itemId(divider))) {
+        Map<String, String> raw = data.framedDrawerModelData();
+        if (raw == null || raw.isEmpty()) {
+            return Optional.of(FramedMaterialSnapshot.nativeDesign());
+        }
+        if (!raw.keySet().equals(STYLED_KEYS)
+                || !itemId(raw.get("particle"))
+                || !itemId(raw.get("side"))
+                || !itemId(raw.get("front"))
+                || !itemId(raw.get("front_divider"))) {
             return Optional.empty();
         }
-        return Optional.of(new FramedMaterialSnapshot(
-                raw.particle(), raw.side(), raw.front(), divider
+        return Optional.of(FramedMaterialSnapshot.styled(
+                raw.get("particle"), raw.get("side"), raw.get("front"),
+                raw.get("front_divider")
         ));
     }
 

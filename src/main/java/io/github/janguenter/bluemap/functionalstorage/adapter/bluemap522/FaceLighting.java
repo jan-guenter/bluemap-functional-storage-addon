@@ -29,13 +29,14 @@ final class FaceLighting {
         LightData faced = block.getNeighborBlock(
                 Math.round(relative.x), Math.round(relative.y), Math.round(relative.z)
         ).getLightData();
+        int blocklight = Math.max(own.getBlockLight(), faced.getBlockLight());
         return new Sample(
                 Math.max(own.getSkyLight(), faced.getSkyLight()),
-                Math.max(lightEmission,
-                        Math.max(own.getBlockLight(), faced.getBlockLight()))
+                blocklight,
+                Math.max(lightEmission, blocklight)
         );
     }
 
-    record Sample(int sunlight, int blocklight) {
+    record Sample(int sunlight, int blocklight, int emissiveBlocklight) {
     }
 }
