@@ -63,18 +63,33 @@ class FunctionalStorageProfileTest {
     }
 
     @Test
-    void controllerHasExactlyFourHorizontalStates() {
-        String id = "functionalstorage:framed_storage_controller";
-        int legal = 0;
-        for (String value : Set.of("down", "up", "north", "south", "west", "east")) {
-            if (FunctionalStorageProfile.legalState(
-                    state(id, Map.of("subfacing", value)))) {
-                legal++;
+    void controllerHasExactlyEightHorizontalStatesAcrossBothLockValues() {
+        for (String id : Set.of(
+                "functionalstorage:framed_storage_controller",
+                "functionalstorage:framed_controller_extension"
+        )) {
+            int legal = 0;
+            for (String locked : Set.of("false", "true")) {
+                for (String value : Set.of(
+                        "down", "up", "north", "south", "west", "east"
+                )) {
+                    if (FunctionalStorageProfile.legalState(state(id, Map.of(
+                            "subfacing", value, "locked", locked
+                    )))) {
+                        legal++;
+                    }
+                }
             }
+            assertEquals(8, legal);
+            assertFalse(FunctionalStorageProfile.legalState(
+                    state(id, Map.of("subfacing", "north"))));
+            assertFalse(FunctionalStorageProfile.legalState(state(id, Map.of(
+                    "subfacing", "north", "locked", "unknown"
+            ))));
+            assertFalse(FunctionalStorageProfile.legalState(state(id, Map.of(
+                    "subfacing", "north", "locked", "true", "active", "false"
+            ))));
         }
-        assertEquals(4, legal);
-        assertFalse(FunctionalStorageProfile.legalState(
-                state(id, Map.of("subfacing", "north", "locked", "false"))));
     }
 
     @Test

@@ -7,6 +7,8 @@ package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
 import de.bluecolored.bluemap.core.map.hires.ArrayTileModel;
 import de.bluecolored.bluemap.core.map.hires.TileModelView;
 import de.bluecolored.bluemap.core.resources.adapter.ResourcesGson;
+import de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.BlockState;
+import de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.Variant;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.texture.AnimationMeta;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.texture.Texture;
 import de.bluecolored.bluemap.core.util.Direction;
@@ -15,14 +17,19 @@ import de.bluecolored.bluemap.core.util.math.Color;
 import de.bluecolored.bluemap.core.world.BlockProperties;
 import io.github.janguenter.bluemap.functionalstorage.model.ChildShellCatalog;
 import io.github.janguenter.bluemap.functionalstorage.model.FramedMaterialSnapshot;
+import io.github.janguenter.bluemap.functionalstorage.profile.FunctionalStorageProfile;
 import org.junit.jupiter.api.Test;
 
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.jar.JarEntry;
@@ -164,10 +171,17 @@ class RendererParityContractTest {
     }
 
     @Test
-    void styledDesignKeepsMaterialAndNativeChildrenInTheirOriginalLanes()
+    void lockedTrueControllerRoutesItsShellWithoutALockOverlay()
             throws IOException {
+        String id = "functionalstorage:framed_storage_controller";
+        var state = new de.bluecolored.bluemap.core.world.BlockState(
+                Key.parse(id), Map.of("subfacing", "west", "locked", "true")
+        );
+        assertTrue(FunctionalStorageProfile.legalState(state));
+
         ChildShellCatalog catalog = ChildShellCatalog.load(exactArtifact());
-        var children = catalog.children("functionalstorage:framed_storage_controller");
+        var children = catalog.children(id);
+        assertFalse(children.stream().anyMatch(child -> child.name().equals("lock")));
         ResolvedBlockMaterial material = material();
         AtomicInteger emissions = new AtomicInteger();
 
@@ -192,6 +206,32 @@ class RendererParityContractTest {
 
         assertTrue(success);
         assertEquals(children.size(), emissions.get());
+    }
+
+    @Test
+    void lockedTrueControllerSelectsInstalledMainVariantWithoutLock()
+            throws IOException {
+        String id = "functionalstorage:framed_storage_controller";
+        var state = new de.bluecolored.bluemap.core.world.BlockState(
+                Key.parse(id), Map.of("subfacing", "west", "locked", "true")
+        );
+        List<Variant> selected = new ArrayList<>();
+        exactBlockState("framed_storage_controller").forEach(
+                state, 0, 0, 0, selected::add
+        );
+
+        FunctionalStorageRenderer.InstalledVariants variants =
+                FunctionalStorageRenderer.selectedVariants(
+                        state, FunctionalStorageProfile.HOSTS.get(id), selected
+                );
+
+        assertEquals(1, selected.size());
+        assertTrue(variants != null);
+        assertEquals(FunctionalStorageProfile.blockModel(id),
+                variants.main().getModel());
+        assertTrue(variants.main().isUvlock());
+        assertEquals(270F, variants.main().getY(), 0F);
+        assertNull(variants.lock());
     }
 
     @Test
@@ -269,6 +309,23 @@ class RendererParityContractTest {
                     throw new AssertionError("unreadable exact texture " + entryName);
                 }
                 return Texture.from(Key.parse("functionalstorage:block/framed_side"), image);
+            }
+        }
+    }
+
+    private static BlockState exactBlockState(String name) throws IOException {
+        String entryName = "assets/functionalstorage/blockstates/" + name + ".json";
+        try (JarFile jar = new JarFile(exactArtifact().toFile())) {
+            JarEntry entry = jar.getJarEntry(entryName);
+            if (entry == null) {
+                throw new AssertionError("missing exact blockstate " + entryName);
+            }
+            try (InputStreamReader reader = new InputStreamReader(
+                    jar.getInputStream(entry), StandardCharsets.UTF_8
+            )) {
+                return ResourcesGson.INSTANCE.fromJson(
+                        reader, BlockState.class
+                );
             }
         }
     }

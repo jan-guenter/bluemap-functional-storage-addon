@@ -31,11 +31,15 @@ The profile owns exactly:
 
 All IDs are in the `functionalstorage` namespace. The renderer requires a
 same-named block entity, a legal installed orientation, and strict
-`framedDrawerModelData`. Absent, null, or empty design data emits the complete
-native installed shell. Any non-empty styled design must contain exactly
-`particle`, `side`, `front`, and `front_divider`; all four values must resolve
-to admitted BlockItem default-state materials. `particle` is validation-only,
-and `front_divider` is validation-only on hosts without that installed child.
+`framedDrawerModelData`. Controller hosts admit exactly four horizontal
+`subfacing` values times the two canonical `locked` values. Both lock values
+use the same installed shell without a lock overlay; other controller states
+remain stock. Absent, null, or empty design data emits the complete native
+installed shell. Any non-empty styled design must contain
+exactly `particle`, `side`, `front`, and `front_divider`; all four values must
+resolve to admitted BlockItem default-state materials. `particle` is
+validation-only, and `front_divider` is validation-only on hosts without that
+installed child.
 Only `front`, `side`, and an installed `front_divider` are substituted. Native
 `tank` and `display` children plus the ordinary lock overlay stay
 resource-driven, including the exact native controller-display animation.

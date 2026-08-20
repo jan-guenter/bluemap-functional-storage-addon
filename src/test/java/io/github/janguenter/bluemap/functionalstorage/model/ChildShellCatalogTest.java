@@ -9,6 +9,7 @@ import de.bluecolored.bluemap.core.resources.pack.resourcepack.model.Element;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.model.Model;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.texture.AnimationMeta;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.texture.Texture;
+import de.bluecolored.bluemap.core.util.Direction;
 import de.bluecolored.bluemap.core.util.Key;
 import io.github.janguenter.bluemap.functionalstorage.profile.FunctionalStorageProfile;
 import org.junit.jupiter.api.BeforeAll;
@@ -27,6 +28,7 @@ import java.util.zip.ZipFile;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ChildShellCatalogTest {
@@ -131,6 +133,35 @@ class ChildShellCatalogTest {
                     ));
                 }
             }
+        }
+    }
+
+    @Test
+    void exactGalleryFloorFacingChildrenDeclareNorthCullfaces() throws IOException {
+        try (ZipFile zip = new ZipFile(artifact.toFile())) {
+            for (String name : List.of(
+                    "divider_2", "lock", "fluid_front_1", "fluid_inner_1"
+            )) {
+                Key key = Key.parse("functionalstorage:block/" + name);
+                Model model;
+                try (InputStreamReader reader = exactModelReader(zip, key)) {
+                    model = ResourcesGson.INSTANCE.fromJson(reader, Model.class);
+                }
+                for (Element element : model.getElements()) {
+                    element.getFaces().values().forEach(face -> assertEquals(
+                            Direction.NORTH, face.getCullface(), key.getFormatted()
+                    ));
+                }
+            }
+
+            Key ordinaryFront = Key.parse("functionalstorage:block/front");
+            Model model;
+            try (InputStreamReader reader = exactModelReader(zip, ordinaryFront)) {
+                model = ResourcesGson.INSTANCE.fromJson(reader, Model.class);
+            }
+            model.getElements()[0].getFaces().values().forEach(face -> assertNull(
+                    face.getCullface(), ordinaryFront.getFormatted()
+            ));
         }
     }
 

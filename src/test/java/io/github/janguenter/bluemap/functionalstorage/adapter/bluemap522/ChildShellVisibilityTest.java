@@ -95,6 +95,42 @@ class ChildShellVisibilityTest {
     }
 
     @Test
+    void galleryXQuarterTurnsCullInstalledNorthFacesAgainstTheFloor() {
+        Variant a2 = new Variant(
+                new ResourcePath<Model>("functionalstorage:block/framed_2"),
+                90F, 90F, 0F, false, 1D
+        );
+        Variant b2 = new Variant(
+                new ResourcePath<Model>("functionalstorage:block/framed_fluid_1"),
+                90F, 270F, 0F, false, 1D
+        );
+        BlockNeighborhood floor = neighborhood(Map.of(
+                new Position(X, Y, Z), HOST,
+                new Position(X, Y - 1, Z), SOLID
+        ), new LightData(15, 0), Settings.ordinarySettings());
+        FaceLighting.Sample light = new FaceLighting.Sample(15, 0, 0);
+        Face noCull = new Face(
+                new Vector4f(0F, 0F, 16F, 16F),
+                new TextureVariable(new ResourcePath<Texture>("test:white")),
+                null, 0, -1
+        );
+
+        assertEquals(Direction.DOWN,
+                ChildShellEmitter.transformedDirection(Direction.NORTH, a2));
+        assertEquals(Direction.DOWN,
+                ChildShellEmitter.transformedDirection(Direction.NORTH, b2));
+        assertFalse(ChildShellEmitter.visible(
+                NORTH_CULL, 0F, light, floor, a2, Settings.ordinarySettings()
+        ));
+        assertFalse(ChildShellEmitter.visible(
+                NORTH_CULL, 0F, light, floor, b2, Settings.ordinarySettings()
+        ));
+        assertTrue(ChildShellEmitter.visible(
+                noCull, 0F, light, floor, a2, Settings.ordinarySettings()
+        ));
+    }
+
+    @Test
     void topOnlyCaveAndAmbientOcclusionFollowResourceRendererPolicy() {
         BlockNeighborhood open = neighborhood(
                 Map.of(new Position(X, Y, Z), HOST),

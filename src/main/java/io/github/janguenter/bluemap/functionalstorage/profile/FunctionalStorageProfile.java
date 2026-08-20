@@ -66,8 +66,10 @@ public final class FunctionalStorageProfile {
                     && DIRECTIONS.contains(facing))
                     || (HORIZONTAL.contains(subfacing) && "down".equals(facing));
         }
-        return properties.keySet().equals(Set.of("subfacing"))
-                && HORIZONTAL.contains(properties.get("subfacing"));
+        return properties.keySet().equals(Set.of("subfacing", "locked"))
+                && HORIZONTAL.contains(properties.get("subfacing"))
+                && ("false".equals(properties.get("locked"))
+                        || "true".equals(properties.get("locked")));
     }
 
     public static Key blockModel(String hostId) {

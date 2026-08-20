@@ -34,6 +34,23 @@ class FramedMaterialSnapshotDecoderTest {
     }
 
     @Test
+    void acceptsBothExactControllerLockStates()
+            throws ReflectiveOperationException {
+        String id = "functionalstorage:framed_storage_controller";
+        for (String locked : new String[]{"false", "true"}) {
+            BlockState state = new BlockState(Key.parse(id), Map.of(
+                    "subfacing", "west", "locked", locked
+            ));
+
+            FramedMaterialSnapshot snapshot = decoder.decode(
+                    state, data(id, styled())
+            ).orElseThrow();
+
+            assertEquals(FramedMaterialSnapshot.Mode.STYLED, snapshot.mode());
+        }
+    }
+
+    @Test
     void absentAndEmptyCompoundsNormalizeToNativeDesign()
             throws ReflectiveOperationException {
         String id = "functionalstorage:framed_1";

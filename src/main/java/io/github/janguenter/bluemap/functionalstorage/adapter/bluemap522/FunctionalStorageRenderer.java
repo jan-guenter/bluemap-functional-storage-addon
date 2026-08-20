@@ -194,8 +194,19 @@ final class FunctionalStorageRenderer implements BlockRenderer {
                 block.getBlockState(), block.getX(), block.getY(), block.getZ(),
                 selected::add
         );
+        return selectedVariants(block.getBlockState(), profile, selected);
+    }
+
+    static InstalledVariants selectedVariants(
+            BlockState hostState,
+            FunctionalStorageProfile.Host profile,
+            List<Variant> selected
+    ) {
+        if (hostState == null || profile == null || selected == null) {
+            return null;
+        }
         Key expectedMain = FunctionalStorageProfile.blockModel(
-                block.getBlockState().getId().getFormatted()
+                hostState.getId().getFormatted()
         );
         List<Variant> main = selected.stream()
                 .filter(variant -> expectedMain.equals(variant.getModel()))
@@ -215,7 +226,7 @@ final class FunctionalStorageRenderer implements BlockRenderer {
         if (!profile.drawerFamily()) {
             return lock.isEmpty() ? new InstalledVariants(mainVariant, null) : null;
         }
-        boolean locked = "true".equals(block.getBlockState().getProperties().get("locked"));
+        boolean locked = "true".equals(hostState.getProperties().get("locked"));
         if (lock.size() != (locked ? 1 : 0)) {
             return null;
         }
@@ -312,7 +323,7 @@ final class FunctionalStorageRenderer implements BlockRenderer {
         );
     }
 
-    private record InstalledVariants(Variant main, Variant lock) {
+    record InstalledVariants(Variant main, Variant lock) {
     }
 
     @FunctionalInterface

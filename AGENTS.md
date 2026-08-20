@@ -11,6 +11,8 @@ BlueMap renderer. Read this file and `README.md` before changing the project.
   in `provenance/upstreams.json`: Functional Storage 1.5.8 and Titanium 4.0.45.
 - Own exactly the ten block IDs in the packaged profile. Each host must have a
   same-named block-entity ID and a legal exact-profile orientation state.
+  Controller hosts admit exactly four horizontal `subfacing` values times the
+  two canonical `locked` values; both use the same shell without a lock overlay.
 - Read only `framedDrawerModelData`. Absent, null, or empty data is the native
   installed shell; non-empty styled data must contain exactly `particle`,
   `front`, `side`, and `front_divider`. Validate all four materials and
