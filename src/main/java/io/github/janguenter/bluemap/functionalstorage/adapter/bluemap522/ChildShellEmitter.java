@@ -5,6 +5,7 @@
  * coordinate/UV conventions, extended only for installed child definitions,
  * exact variant transforms, and UV lock.
  */
+
 package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
 
 import com.flowpowered.math.vector.Vector3f;

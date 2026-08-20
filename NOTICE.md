@@ -13,6 +13,11 @@ owner-controlled MIT projects:
   resolution at the Minecraft runtime boundary.
 
 The adapted files retain SPDX identifiers and their modification purpose is
-recorded in `provenance/upstreams.json`. BlueMap is MIT-licensed. Functional
-Storage and Titanium are runtime evidence/resources only and are not copied or
-redistributed. No LGPL FramedBlocks code or Functional Storage source is used.
+recorded in `provenance/upstreams.json`. The renderer also adapts MIT-licensed
+resource-emission and UV-lock conventions from BlueMap 5.22. BlueMap's complete
+MIT notice is retained in `LICENSE-BlueMap` and packaged as
+`META-INF/LICENSE-BlueMap`.
+
+Functional Storage and Titanium are runtime evidence/resources only and are
+not copied or redistributed. No LGPL FramedBlocks code or Functional Storage
+source is used.

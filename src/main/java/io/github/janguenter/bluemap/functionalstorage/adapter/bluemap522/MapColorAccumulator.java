@@ -4,6 +4,7 @@
  * This aggregation follows BlueMap's MIT ResourceModelRenderer and
  * BlockStateModelRenderer map-color contracts.
  */
+
 package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
 
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.texture.Texture;

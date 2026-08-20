@@ -43,7 +43,7 @@ BlueMap renderer. Read this file and `README.md` before changing the project.
 ## Focused prototype gate
 
 ```bash
-gradle --no-daemon clean test jar verifyProductionJar
+gradle --no-daemon clean check jar verifyProductionJar
 ```
 
 When exact artifact fixtures are available, also run:

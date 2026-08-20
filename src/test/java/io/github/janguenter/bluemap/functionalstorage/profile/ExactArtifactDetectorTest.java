@@ -1,6 +1,7 @@
 /*
  * SPDX-License-Identifier: MIT
  */
+
 package io.github.janguenter.bluemap.functionalstorage.profile;
 
 import org.junit.jupiter.api.Test;

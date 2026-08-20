@@ -1,6 +1,7 @@
 /*
  * SPDX-License-Identifier: MIT
  */
+
 package io.github.janguenter.bluemap.functionalstorage;
 
 import io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522.AdapterCompatibility;

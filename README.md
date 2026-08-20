@@ -65,7 +65,7 @@ correlation, controls activation.
 ## Build
 
 ```bash
-gradle --no-daemon clean test jar verifyProductionJar
+gradle --no-daemon clean check jar verifyProductionJar
 ```
 
 The produced JAR is under `build/libs/`. This prototype is not released and is

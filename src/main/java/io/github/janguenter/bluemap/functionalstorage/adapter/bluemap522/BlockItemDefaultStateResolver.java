@@ -4,6 +4,7 @@
  * Reflection-only registered-default-state resolution adapts the verified
  * boundary from the owner's MIT BlueMap Glassential add-on.
  */
+
 package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
 
 import de.bluecolored.bluemap.core.util.Key;

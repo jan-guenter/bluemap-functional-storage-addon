@@ -4,6 +4,7 @@
  * This bounded installed-artifact scanner adapts the exact-mod detector
  * pattern from the owner's MIT BlueMap Sophisticated add-on.
  */
+
 package io.github.janguenter.bluemap.functionalstorage.profile;
 
 import java.io.IOException;

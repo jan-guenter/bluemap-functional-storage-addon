@@ -4,6 +4,7 @@
  * The conservative material proof adapts owner-controlled MIT code from the
  * Sophisticated add-on. No candidate implementation is used.
  */
+
 package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
 
 import com.flowpowered.math.vector.Vector3f;
@@ -18,7 +19,6 @@ import de.bluecolored.bluemap.core.resources.pack.resourcepack.model.Face;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.model.Model;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.texture.Texture;
 import de.bluecolored.bluemap.core.util.Direction;
-import de.bluecolored.bluemap.core.util.Key;
 import de.bluecolored.bluemap.core.util.math.Color;
 import de.bluecolored.bluemap.core.world.BlockState;
 import de.bluecolored.bluemap.core.world.block.BlockNeighborhood;

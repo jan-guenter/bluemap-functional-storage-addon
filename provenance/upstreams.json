@@ -27,7 +27,8 @@
       "version": "5.22-agent.backport-5.22-mc1.21.1-2",
       "commit": "9be321df995a1103808621d529eb72773e719d4d",
       "license": "MIT",
-      "lane": "runtime-interface and adapted MIT resource-emission conventions"
+      "licenseNotice": "LICENSE-BlueMap -> META-INF/LICENSE-BlueMap",
+      "lane": "runtime-interface and adapted MIT resource-emission and UV-lock conventions"
     }
   ],
   "ownerCodePatterns": [

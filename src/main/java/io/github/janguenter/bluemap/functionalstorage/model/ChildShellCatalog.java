@@ -5,6 +5,7 @@
  * the owner's MIT BlueMap Mekanism add-on. It contains no candidate assets or
  * candidate implementation code.
  */
+
 package io.github.janguenter.bluemap.functionalstorage.model;
 
 import com.google.gson.JsonElement;

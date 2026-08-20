@@ -2,6 +2,7 @@
 
 plugins {
     id 'java-library'
+    id 'checkstyle'
     id 'maven-publish'
 }
 
@@ -56,6 +57,18 @@ tasks.named('test', Test).configure {
     }
 }
 
+checkstyle {
+    toolVersion = '10.18.2'
+    configFile = file('config/checkstyle/checkstyle.xml')
+}
+
+tasks.withType(Checkstyle).configureEach {
+    reports {
+        xml.required = true
+        html.required = true
+    }
+}
+
 tasks.named('jar', Jar).configure {
     manifest {
         attributes(
@@ -65,6 +78,16 @@ tasks.named('jar', Jar).configure {
         )
     }
     from('LICENSE') { into 'META-INF'; rename { 'LICENSE-bluemap-functional-storage-addon' } }
+    from('LICENSE-BlueMap') { into 'META-INF' }
+    from('NOTICE.md') { into 'META-INF'; rename { 'NOTICE-bluemap-functional-storage-addon.md' } }
+    from('THIRD_PARTY.md') { into 'META-INF'; rename { 'THIRD_PARTY-bluemap-functional-storage-addon.md' } }
+    from('provenance/upstreams.json') { into 'META-INF/bluemap-functionalstorage' }
+}
+
+tasks.named('sourcesJar', Jar).configure {
+    includeEmptyDirs = false
+    from('LICENSE') { into 'META-INF'; rename { 'LICENSE-bluemap-functional-storage-addon' } }
+    from('LICENSE-BlueMap') { into 'META-INF' }
     from('NOTICE.md') { into 'META-INF'; rename { 'NOTICE-bluemap-functional-storage-addon.md' } }
     from('THIRD_PARTY.md') { into 'META-INF'; rename { 'THIRD_PARTY-bluemap-functional-storage-addon.md' } }
     from('provenance/upstreams.json') { into 'META-INF/bluemap-functionalstorage' }
@@ -83,6 +106,7 @@ tasks.register('verifyProductionJar') {
                     'assets/bluemap_functionalstorage/blockstates/framed_shell.json',
                     'bluemap-functionalstorage/profiles/functionalstorage/1.5.8/profile.json',
                     'META-INF/LICENSE-bluemap-functional-storage-addon',
+                    'META-INF/LICENSE-BlueMap',
                     'META-INF/NOTICE-bluemap-functional-storage-addon.md',
                     'META-INF/THIRD_PARTY-bluemap-functional-storage-addon.md',
                     'META-INF/bluemap-functionalstorage/upstreams.json'
@@ -90,6 +114,12 @@ tasks.register('verifyProductionJar') {
             def missing = required.findAll { !entries.contains(it) }
             if (!missing.isEmpty()) {
                 throw new GradleException("Production JAR is missing: ${missing}")
+            }
+            def packagedBlueMapLicense = zip.getInputStream(
+                    zip.getEntry('META-INF/LICENSE-BlueMap')
+            ).readAllBytes()
+            if (!java.util.Arrays.equals(packagedBlueMapLicense, file('LICENSE-BlueMap').bytes)) {
+                throw new GradleException('Packaged BlueMap license notice mismatch')
             }
             def addon = new groovy.json.JsonSlurper().parseText(
                     zip.getInputStream(zip.getEntry('bluemap.addon.json')).getText('UTF-8')
