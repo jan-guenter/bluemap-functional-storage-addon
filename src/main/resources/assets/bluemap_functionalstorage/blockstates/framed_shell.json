@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "": {
+      "renderer": "bluemap_functionalstorage:framed_shell",
+      "model": "bluemap:block/missing"
+    }
+  }
+}

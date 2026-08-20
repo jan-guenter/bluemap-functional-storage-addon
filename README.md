@@ -58,3 +58,12 @@ gradle --no-daemon clean test jar verifyProductionJar
 
 The produced JAR is under `build/libs/`. This prototype is not released and is
 not authorized for production deployment.
+
+## Disposable comparison gallery
+
+`gallery/` contains the independently generated twelve-anchor staging
+datapack: all ten routed hosts, one empty framed-shell stock fallback, and one
+ordinary oak-drawer control. It deliberately injects no inventories, fluid
+amount, upgrades, controller state, particles, or animation. Its generator,
+29 retained assertions per phase, checksums, and deterministic packaging are
+documented in `gallery/README.md`.

@@ -27,7 +27,9 @@ repositories {
 
 dependencies {
     compileOnly "de.bluecolored:bluemap-core:${bluemap_version}"
+    compileOnly 'org.jetbrains:annotations:23.0.0'
     testImplementation "de.bluecolored:bluemap-core:${bluemap_version}"
+    testImplementation 'org.jetbrains:annotations:23.0.0'
     testImplementation platform('org.junit:junit-bom:5.11.4')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -78,6 +80,7 @@ tasks.register('verifyProductionJar') {
             def entries = zip.entries().findAll { !it.directory }.collect { it.name }
             def required = [
                     'bluemap.addon.json',
+                    'assets/bluemap_functionalstorage/blockstates/framed_shell.json',
                     'bluemap-functionalstorage/profiles/functionalstorage/1.5.8/profile.json',
                     'META-INF/LICENSE-bluemap-functional-storage-addon',
                     'META-INF/NOTICE-bluemap-functional-storage-addon.md',
@@ -87,6 +90,27 @@ tasks.register('verifyProductionJar') {
             def missing = required.findAll { !entries.contains(it) }
             if (!missing.isEmpty()) {
                 throw new GradleException("Production JAR is missing: ${missing}")
+            }
+            def addon = new groovy.json.JsonSlurper().parseText(
+                    zip.getInputStream(zip.getEntry('bluemap.addon.json')).getText('UTF-8')
+            )
+            if (addon.id != addon_id
+                    || addon.entrypoint != 'io.github.janguenter.bluemap.functionalstorage.BlueMapFunctionalStorageAddon'
+                    || addon.dependencies != []
+                    || addon['soft-dependencies'] != []) {
+                throw new GradleException('BlueMap add-on metadata mismatch')
+            }
+            def profile = new groovy.json.JsonSlurper().parseText(
+                    zip.getInputStream(zip.getEntry(
+                            'bluemap-functionalstorage/profiles/functionalstorage/1.5.8/profile.json'
+                    )).getText('UTF-8')
+            )
+            if (profile.hosts.size() != 10
+                    || profile.functionalStorage.sha256
+                            != 'e3e7368c28a24e7de5b877988aa92cc94ca7417c8f60b7d28e7f584a94a51147'
+                    || profile.titanium.sha256
+                            != 'd224a9bd5cfb9e921ba644b2a7a2ce1041f879a9945f80dacebd87d95888530c') {
+                throw new GradleException('Exact compatibility profile mismatch')
             }
             def forbidden = entries.findAll {
                 it.endsWith('.jar')
