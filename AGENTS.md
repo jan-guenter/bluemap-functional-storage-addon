@@ -3,7 +3,7 @@
 This is the standalone repository for the exact-gated Functional Storage
 BlueMap renderer. Read this file and `README.md` before changing the project.
 
-## Frozen prototype scope
+## Frozen release scope
 
 - Target Java 21, Minecraft 1.21.1, NeoForge 21.1.248 and the audited BlueMap
   5.22 Java-21 backport.
@@ -42,13 +42,19 @@ BlueMap renderer. Read this file and `README.md` before changing the project.
   releases from this repository task.
 - Preserve unrelated changes and stage explicit paths only.
 
-## Focused prototype gate
+## Release gate
 
 ```bash
-gradle --no-daemon clean check jar verifyProductionJar
+gradle --no-daemon \
+  -PfunctionalStorageJar=/absolute/path/functionalstorage-1.21.1-1.5.8.jar \
+  -PtitaniumJar=/absolute/path/titanium-1.21-4.0.45.jar \
+  -PreleaseTag=v0.1.0-alpha.1 \
+  clean check build generatePomFileForAddonPublication \
+  generateMetadataFileForAddonPublication verifyPublicationArtifacts \
+  verifyReleaseCandidate
 ```
 
-When exact artifact fixtures are available, also run:
+For a narrower exact-artifact test rerun, use:
 
 ```bash
 gradle --no-daemon test \
@@ -57,4 +63,5 @@ gradle --no-daemon test \
 ```
 
 Report only checks actually observed. A loadable local JAR is a prototype, not
-a release or production-deployment authorization.
+a production-deployment authorization. Publication does not deploy the add-on
+to a Minecraft server.

@@ -1,10 +1,14 @@
 .gradle/
+.ci/
 build/
 out/
+.vscode/
 *.class
 *.log
 *.jar
+*.zip
+*.py[cod]
+__pycache__/
 !gradle/wrapper/gradle-wrapper.jar
 .idea/
-.vscode/
 gallery/*.zip
