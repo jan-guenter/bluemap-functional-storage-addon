@@ -1,0 +1,111 @@
+// SPDX-License-Identifier: MIT
+
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+group = addon_group
+version = addon_version
+
+base {
+    archivesName = artifact_id
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(21)
+    withSourcesJar()
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url = uri('https://repo.bluecolored.de/releases')
+        content { includeGroupByRegex('de\\.bluecolored.*') }
+    }
+}
+
+dependencies {
+    compileOnly "de.bluecolored:bluemap-core:${bluemap_version}"
+    testImplementation "de.bluecolored:bluemap-core:${bluemap_version}"
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = 21
+    options.compilerArgs.addAll(['-Xlint:all', '-Werror'])
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
+    ['functionalStorageJar', 'titaniumJar'].each { propertyName ->
+        def value = providers.gradleProperty(propertyName)
+        if (value.isPresent()) {
+            systemProperty propertyName, value.get()
+        }
+    }
+}
+
+tasks.named('jar', Jar).configure {
+    manifest {
+        attributes(
+                'Automatic-Module-Name': 'io.github.janguenter.bluemap.functionalstorage',
+                'Implementation-Title': addon_name,
+                'Implementation-Version': project.version.toString()
+        )
+    }
+    from('LICENSE') { into 'META-INF'; rename { 'LICENSE-bluemap-functional-storage-addon' } }
+    from('NOTICE.md') { into 'META-INF'; rename { 'NOTICE-bluemap-functional-storage-addon.md' } }
+    from('THIRD_PARTY.md') { into 'META-INF'; rename { 'THIRD_PARTY-bluemap-functional-storage-addon.md' } }
+    from('provenance/upstreams.json') { into 'META-INF/bluemap-functionalstorage' }
+}
+
+tasks.register('verifyProductionJar') {
+    dependsOn tasks.named('jar')
+    def productionJar = tasks.named('jar', Jar).flatMap { it.archiveFile }
+    inputs.file(productionJar)
+    doLast {
+        def zip = new java.util.zip.ZipFile(inputs.files.singleFile)
+        try {
+            def entries = zip.entries().findAll { !it.directory }.collect { it.name }
+            def required = [
+                    'bluemap.addon.json',
+                    'bluemap-functionalstorage/profiles/functionalstorage/1.5.8/profile.json',
+                    'META-INF/LICENSE-bluemap-functional-storage-addon',
+                    'META-INF/NOTICE-bluemap-functional-storage-addon.md',
+                    'META-INF/THIRD_PARTY-bluemap-functional-storage-addon.md',
+                    'META-INF/bluemap-functionalstorage/upstreams.json'
+            ]
+            def missing = required.findAll { !entries.contains(it) }
+            if (!missing.isEmpty()) {
+                throw new GradleException("Production JAR is missing: ${missing}")
+            }
+            def forbidden = entries.findAll {
+                it.endsWith('.jar')
+                        || it == 'META-INF/neoforge.mods.toml'
+                        || it == 'fabric.mod.json'
+                        || it.endsWith('.mixins.json')
+                        || it.startsWith('net/minecraft/')
+                        || it.startsWith('net/neoforged/')
+                        || it.startsWith('com/buuz135/')
+                        || it.startsWith('assets/functionalstorage/')
+                        || it.startsWith('assets/titanium/')
+                        || it.endsWith('.png')
+                        || it.endsWith('.mcmeta')
+            }
+            if (!forbidden.isEmpty()) {
+                throw new GradleException("Production JAR contains forbidden entries: ${forbidden}")
+            }
+        } finally {
+            zip.close()
+        }
+    }
+}

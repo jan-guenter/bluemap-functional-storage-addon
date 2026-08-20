@@ -1,0 +1,6 @@
+{
+  "id": "bluemap-functionalstorage",
+  "entrypoint": "io.github.janguenter.bluemap.functionalstorage.BlueMapFunctionalStorageAddon",
+  "dependencies": [],
+  "soft-dependencies": []
+}

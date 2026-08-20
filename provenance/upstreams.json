@@ -1,0 +1,43 @@
+{
+  "schema": 1,
+  "profile": "all-the-mons-1.2.0-functional-storage-1.5.8",
+  "artifacts": [
+    {
+      "id": "functionalstorage",
+      "filename": "functionalstorage-1.21.1-1.5.8.jar",
+      "version": "1.21.1-1.5.8",
+      "size": 810628,
+      "sha1": "f5978bb49b71e94d7063502c0fad0202ebbefbcc",
+      "sha256": "e3e7368c28a24e7de5b877988aa92cc94ca7417c8f60b7d28e7f584a94a51147",
+      "distribution": "CurseForge 556861/8459097",
+      "sourceCorrelation": "tag 1.21-1.5.8b, cf64288607d1a40e0f45542e7378853b7346825c; correlation only",
+      "lane": "resource-interpreter; runtime evidence only; no source or assets copied"
+    },
+    {
+      "id": "titanium",
+      "filename": "titanium-1.21-4.0.45.jar",
+      "version": "1.21-4.0.45",
+      "size": 606801,
+      "sha1": "c718d4d8713b83964f9b8feea4443a25feb84fc9",
+      "sha256": "d224a9bd5cfb9e921ba644b2a7a2ce1041f879a9945f80dacebd87d95888530c",
+      "lane": "runtime evidence only; no source or assets copied"
+    },
+    {
+      "id": "bluemap",
+      "version": "5.22-agent.backport-5.22-mc1.21.1-2",
+      "commit": "9be321df995a1103808621d529eb72773e719d4d",
+      "license": "MIT",
+      "lane": "runtime-interface and adapted MIT resource-emission conventions"
+    }
+  ],
+  "ownerCodePatterns": [
+    "bluemap-sophisticated-addon BlockMaterialResolver/JsonModelEmitter",
+    "bluemap-mekanism-addon installed-artifact child JSON parsing",
+    "bluemap-glassential-addon reflection-only default-state resolver"
+  ],
+  "excludedSources": [
+    "Functional Storage implementation source",
+    "FramedBlocks LGPL implementation",
+    "all candidate and Minecraft assets/classes"
+  ]
+}
