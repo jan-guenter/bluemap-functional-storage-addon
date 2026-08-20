@@ -1,7 +1,17 @@
 # BlueMap Functional Storage Add-on
 
+[![CI](https://github.com/jan-guenter/bluemap-functional-storage-addon/actions/workflows/ci.yml/badge.svg)](https://github.com/jan-guenter/bluemap-functional-storage-addon/actions/workflows/ci.yml)
+
 Experimental BlueMap 5.22 support for the static installed-material shells of
 Functional Storage's ten framed blocks in All the Mons 1.2.0.
+
+Version `0.1.0-alpha.1` is the owner-accepted release candidate. Its final
+production JAR is 82,274 bytes with SHA-256
+`ffe80812802c2c8f68d50ee74f17dd492561f3b44a9e650545064f66e285b048`.
+The accepted staging gallery passed all 29 assertions with zero failures at
+the immediate, 20-tick and 100-tick phases on 2026-08-21. Its deterministic
+gallery ZIP is 4,697 bytes with SHA-256
+`51dd3845398b9c624631e227468bcce65e693dce15e2f764c67dfe8ba9fddd27`.
 
 ## Exact compatibility profile
 
@@ -69,11 +79,25 @@ correlation, controls activation.
 ## Build
 
 ```bash
-gradle --no-daemon clean check jar verifyProductionJar
+gradle --no-daemon \
+  -PfunctionalStorageJar=/absolute/path/functionalstorage-1.21.1-1.5.8.jar \
+  -PtitaniumJar=/absolute/path/titanium-1.21-4.0.45.jar \
+  -PreleaseTag=v0.1.0-alpha.1 \
+  clean check build generatePomFileForAddonPublication \
+  generateMetadataFileForAddonPublication verifyPublicationArtifacts \
+  verifyReleaseCandidate
 ```
 
-The produced JAR is under `build/libs/`. This prototype is not released and is
-not authorized for production deployment.
+The produced JAR is under `build/libs/`. Publication does not deploy it to a
+Minecraft server.
+
+## Release
+
+The intended immutable tag is `v0.1.0-alpha.1`, and the Maven coordinate is
+`io.github.jan-guenter:bluemap-functional-storage-addon:0.1.0-alpha.1`.
+Publication is allowed only after the independently audited pull request and
+its final-head CI pass. See [the release procedure](docs/RELEASING.md) and
+[recorded candidate provenance](provenance/release.json).
 
 ## Disposable comparison gallery
 

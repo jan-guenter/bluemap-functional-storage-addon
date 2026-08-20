@@ -39,6 +39,8 @@ dependencies {
 tasks.withType(JavaCompile).configureEach {
     options.encoding = 'UTF-8'
     options.release = 21
+    options.debug = true
+    options.debugOptions.debugLevel = 'source,lines'
     options.compilerArgs.addAll(['-Xlint:all', '-Werror'])
 }
 
@@ -93,9 +95,60 @@ tasks.named('sourcesJar', Jar).configure {
     from('provenance/upstreams.json') { into 'META-INF/bluemap-functionalstorage' }
 }
 
+def productionJar = tasks.named('jar', Jar).flatMap { it.archiveFile }
+def publishedSourcesJar = tasks.named('sourcesJar', Jar).flatMap { it.archiveFile }
+
+tasks.register('verifyAcceptedProductionJar') {
+    dependsOn tasks.named('jar')
+    inputs.file(productionJar)
+    doLast {
+        def jarFile = inputs.files.singleFile
+        def expectedSize = providers.gradleProperty('accepted_jar_size').get().toLong()
+        def expectedSha256 = providers.gradleProperty('accepted_jar_sha256').get()
+        def actualSha256 = java.security.MessageDigest.getInstance('SHA-256')
+                .digest(jarFile.bytes)
+                .encodeHex()
+                .toString()
+        if (jarFile.length() != expectedSize || actualSha256 != expectedSha256) {
+            throw new GradleException(
+                    "Accepted production JAR mismatch: ${jarFile.length()} bytes, "
+                            + "SHA-256 ${actualSha256}"
+            )
+        }
+    }
+}
+
+tasks.register('verifyAcceptedSourcesJar') {
+    dependsOn tasks.named('sourcesJar')
+    inputs.file(publishedSourcesJar)
+    doLast {
+        def jarFile = inputs.files.singleFile
+        def expectedSize = providers.gradleProperty('accepted_sources_jar_size').get().toLong()
+        def expectedSha256 = providers.gradleProperty('accepted_sources_jar_sha256').get()
+        def actualSha256 = java.security.MessageDigest.getInstance('SHA-256')
+                .digest(jarFile.bytes)
+                .encodeHex()
+                .toString()
+        if (jarFile.length() != expectedSize || actualSha256 != expectedSha256) {
+            throw new GradleException(
+                    "Accepted sources JAR mismatch: ${jarFile.length()} bytes, "
+                            + "SHA-256 ${actualSha256}"
+            )
+        }
+    }
+}
+
+tasks.register('verifyStagedEquivalence', Exec) {
+    dependsOn tasks.named('jar')
+    inputs.file(productionJar)
+    inputs.file('provenance/accepted-staging-entries.sha256')
+    commandLine 'python3', 'tools/verify_staged_equivalence.py',
+            '--jar', productionJar.get().asFile,
+            '--entries', 'provenance/accepted-staging-entries.sha256'
+}
+
 tasks.register('verifyProductionJar') {
     dependsOn tasks.named('jar')
-    def productionJar = tasks.named('jar', Jar).flatMap { it.archiveFile }
     inputs.file(productionJar)
     doLast {
         def zip = new java.util.zip.ZipFile(inputs.files.singleFile)
@@ -160,6 +213,196 @@ tasks.register('verifyProductionJar') {
             }
         } finally {
             zip.close()
+        }
+    }
+}
+
+tasks.register('verifySourcesJar') {
+    dependsOn tasks.named('sourcesJar')
+    inputs.file(publishedSourcesJar)
+    doLast {
+        def jarFile = inputs.files.singleFile
+        def zip = new java.util.zip.ZipFile(jarFile)
+        try {
+            def entries = zip.entries().findAll { !it.directory }.collect { it.name }
+            def required = [
+                    'io/github/janguenter/bluemap/functionalstorage/BlueMapFunctionalStorageAddon.java',
+                    'io/github/janguenter/bluemap/functionalstorage/adapter/bluemap522/FunctionalStorageRenderer.java',
+                    'io/github/janguenter/bluemap/functionalstorage/model/ChildShellCatalog.java',
+                    'bluemap.addon.json',
+                    'assets/bluemap_functionalstorage/blockstates/framed_shell.json',
+                    'bluemap-functionalstorage/profiles/functionalstorage/1.5.8/profile.json',
+                    'META-INF/LICENSE-bluemap-functional-storage-addon',
+                    'META-INF/LICENSE-BlueMap',
+                    'META-INF/NOTICE-bluemap-functional-storage-addon.md',
+                    'META-INF/THIRD_PARTY-bluemap-functional-storage-addon.md',
+                    'META-INF/bluemap-functionalstorage/upstreams.json'
+            ]
+            def missing = required.findAll { !entries.contains(it) }
+            if (!missing.isEmpty()) {
+                throw new GradleException("Sources JAR is missing: ${missing}")
+            }
+            def addonDescriptors = entries.findAll { it == 'bluemap.addon.json' }
+            if (addonDescriptors.size() != 1) {
+                throw new GradleException(
+                        "Sources JAR must contain exactly one BlueMap descriptor: ${addonDescriptors}"
+                )
+            }
+            def addon = new groovy.json.JsonSlurper().parseText(
+                    zip.getInputStream(zip.getEntry('bluemap.addon.json')).getText('UTF-8')
+            )
+            if (addon.id != addon_id
+                    || addon.entrypoint != 'io.github.janguenter.bluemap.functionalstorage.BlueMapFunctionalStorageAddon'
+                    || addon.dependencies != []
+                    || addon['soft-dependencies'] != []) {
+                throw new GradleException('Sources JAR BlueMap add-on metadata mismatch')
+            }
+            def projectJava = entries.findAll { it.endsWith('.java') }
+            def foreignJava = projectJava.findAll {
+                !it.startsWith('io/github/janguenter/bluemap/functionalstorage/')
+            }
+            def forbidden = entries.findAll {
+                it.endsWith('.class')
+                        || it.endsWith('.jar')
+                        || it.startsWith('net/minecraft/')
+                        || it.startsWith('net/neoforged/')
+                        || it.startsWith('com/buuz135/')
+                        || it.startsWith('com/hrznstudio/')
+                        || it.startsWith('assets/functionalstorage/')
+                        || it.startsWith('assets/titanium/')
+                        || it.endsWith('.png')
+                        || it.endsWith('.mcmeta')
+            }
+            if (projectJava.isEmpty() || !foreignJava.isEmpty() || !forbidden.isEmpty()) {
+                throw new GradleException(
+                        "Sources JAR boundary mismatch: foreignJava=${foreignJava}, "
+                                + "forbidden=${forbidden}"
+                )
+            }
+        } finally {
+            zip.close()
+        }
+    }
+}
+
+tasks.named('check').configure {
+    dependsOn tasks.named('verifyAcceptedProductionJar')
+    dependsOn tasks.named('verifyAcceptedSourcesJar')
+    dependsOn tasks.named('verifyProductionJar')
+    dependsOn tasks.named('verifySourcesJar')
+    dependsOn tasks.named('verifyStagedEquivalence')
+    dependsOn tasks.named('verifyPinnedArtifacts')
+}
+
+tasks.register('verifyPinnedArtifacts', Exec) {
+    def functionalStorageJar = providers.gradleProperty('functionalStorageJar')
+    def titaniumJar = providers.gradleProperty('titaniumJar')
+    doFirst {
+        if (!functionalStorageJar.isPresent()) {
+            throw new GradleException(
+                    'Set -PfunctionalStorageJar to the exact All the Mons 1.2.0 Functional Storage JAR.'
+            )
+        }
+        if (!titaniumJar.isPresent()) {
+            throw new GradleException(
+                    'Set -PtitaniumJar to the exact All the Mons 1.2.0 Titanium JAR.'
+            )
+        }
+    }
+    commandLine 'python3', 'tools/verify_pinned_artifacts.py',
+            '--functional-storage-jar', functionalStorageJar.getOrElse('missing'),
+            '--titanium-jar', titaniumJar.getOrElse('missing')
+}
+
+tasks.register('verifyPublicationArtifacts') {
+    dependsOn tasks.named('generatePomFileForAddonPublication')
+    dependsOn tasks.named('generateMetadataFileForAddonPublication')
+    doLast {
+        def artifacts = [
+                [file('build/publications/addon/pom-default.xml'),
+                 providers.gradleProperty('accepted_pom_size').get().toLong(),
+                 providers.gradleProperty('accepted_pom_sha256').get()],
+                [file('build/publications/addon/module.json'),
+                 providers.gradleProperty('accepted_module_size').get().toLong(),
+                 providers.gradleProperty('accepted_module_sha256').get()]
+        ]
+        artifacts.each { artifact, expectedSize, expectedSha256 ->
+            def actualSha256 = java.security.MessageDigest.getInstance('SHA-256')
+                    .digest(artifact.bytes)
+                    .encodeHex()
+                    .toString()
+            if (artifact.length() != expectedSize || actualSha256 != expectedSha256) {
+                throw new GradleException(
+                        "Publication artifact mismatch for ${artifact}: "
+                                + "${artifact.length()} bytes, SHA-256 ${actualSha256}"
+                )
+            }
+        }
+        def pom = file('build/publications/addon/pom-default.xml').text
+        def module = new groovy.json.JsonSlurper().parse(
+                file('build/publications/addon/module.json')
+        )
+        if (!pom.contains("<version>${project.version}</version>")
+                || module.component.version != project.version.toString()
+                || project.version.toString().endsWith('-SNAPSHOT')) {
+            throw new GradleException('Publication metadata is not the final release version')
+        }
+    }
+}
+
+tasks.register('verifyReleaseMetadata') {
+    doLast {
+        def expectedTag = "v${project.version}"
+        def requestedTag = providers.gradleProperty('releaseTag').getOrElse('')
+        if (project.version.toString().endsWith('-SNAPSHOT')) {
+            throw new GradleException('Release versions must not end in -SNAPSHOT')
+        }
+        if (requestedTag != expectedTag) {
+            throw new GradleException(
+                    "Release tag mismatch: ${requestedTag ?: '<unset>'} != ${expectedTag}"
+            )
+        }
+    }
+}
+
+tasks.register('verifyReleaseCandidate') {
+    dependsOn tasks.named('check')
+    dependsOn tasks.named('verifyPinnedArtifacts')
+    dependsOn tasks.named('verifyPublicationArtifacts')
+    dependsOn tasks.named('verifyReleaseMetadata')
+}
+
+publishing {
+    publications {
+        addon(MavenPublication) {
+            from components.java
+            artifactId = artifact_id
+            pom {
+                name = addon_name
+                description = 'Exact-profile BlueMap rendering for Functional Storage framed shells.'
+                url = 'https://github.com/jan-guenter/bluemap-functional-storage-addon'
+                licenses {
+                    license {
+                        name = 'MIT License'
+                        url = 'https://spdx.org/licenses/MIT.html'
+                        distribution = 'repo'
+                    }
+                }
+                scm {
+                    url = 'https://github.com/jan-guenter/bluemap-functional-storage-addon'
+                    connection = 'scm:git:https://github.com/jan-guenter/bluemap-functional-storage-addon.git'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            name = 'GitHubPackages'
+            url = uri('https://maven.pkg.github.com/jan-guenter/bluemap-functional-storage-addon')
+            credentials {
+                username = System.getenv('GITHUB_ACTOR')
+                password = System.getenv('GITHUB_TOKEN')
+            }
         }
     }
 }
