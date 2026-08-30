@@ -10,6 +10,14 @@ Use Java 21, Gradle 9.6.1, the exact sibling BlueMap checkout, and the exact
 local Functional Storage and Titanium artifacts:
 
 ```bash
+git submodule update --init --recursive -- tooling/bluemap-addon-toolkit
+python -m pip install --disable-pip-version-check --no-deps \
+  --require-hashes --only-binary=:all: \
+  --requirement requirements/toolkit.txt
+bluemap-addon-toolkit conventions check .
+```
+
+```bash
 gradle --no-daemon \
   -PfunctionalStorageJar=/absolute/path/functionalstorage-1.21.1-1.5.8.jar \
   -PtitaniumJar=/absolute/path/titanium-1.21-4.0.45.jar \
