@@ -4,6 +4,7 @@ plugins {
     id 'java-library'
     id 'checkstyle'
     id 'maven-publish'
+    id 'io.github.janguenter.bluemap-addon.java-conventions'
 }
 
 group = addon_group
@@ -11,11 +12,6 @@ version = addon_version
 
 base {
     archivesName = artifact_id
-}
-
-java {
-    toolchain.languageVersion = JavaLanguageVersion.of(21)
-    withSourcesJar()
 }
 
 repositories {
@@ -37,37 +33,16 @@ dependencies {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.release = 21
     options.debug = true
     options.debugOptions.debugLevel = 'source,lines'
-    options.compilerArgs.addAll(['-Xlint:all', '-Werror'])
-}
-
-tasks.withType(AbstractArchiveTask).configureEach {
-    preserveFileTimestamps = false
-    reproducibleFileOrder = true
 }
 
 tasks.named('test', Test).configure {
-    useJUnitPlatform()
     ['functionalStorageJar', 'titaniumJar'].each { propertyName ->
         def value = providers.gradleProperty(propertyName)
         if (value.isPresent()) {
             systemProperty propertyName, value.get()
         }
-    }
-}
-
-checkstyle {
-    toolVersion = '10.18.2'
-    configFile = file('config/checkstyle/checkstyle.xml')
-}
-
-tasks.withType(Checkstyle).configureEach {
-    reports {
-        xml.required = true
-        html.required = true
     }
 }
 
