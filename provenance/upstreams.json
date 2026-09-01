@@ -24,11 +24,20 @@
     },
     {
       "id": "bluemap",
-      "version": "5.22-agent.backport-5.22-mc1.21.1-2",
-      "commit": "9be321df995a1103808621d529eb72773e719d4d",
+      "version": "5.22-feature.backport-5.23-stateless-java-web-server-46",
+      "commit": "7e07f4e74ec1e92a6ead9aa1e66054af3e133aac",
       "license": "MIT",
       "licenseNotice": "LICENSE-BlueMap -> META-INF/LICENSE-BlueMap",
       "lane": "runtime-interface and adapted MIT resource-emission and UV-lock conventions"
+    },
+    {
+      "id": "bluemap-addon-adapter-api",
+      "version": "0.1.0-alpha.2",
+      "commit": "e81f08bc4bfbf02d810ec8949a019130e2e61634",
+      "sourceTree": "2f974c9bb2ba13888d69682f86f30f58922d30eb",
+      "license": "MIT",
+      "licenseNotice": "modules/bluemap-addon-adapter-api/LICENSE -> META-INF/LICENSE-bluemap-addon-adapter-api",
+      "lane": "four exact source-compiled adapter helpers; standalone JAR not bundled or installed"
     }
   ],
   "ownerCodePatterns": [

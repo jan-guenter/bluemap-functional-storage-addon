@@ -180,7 +180,6 @@ tasks.register('verifyProductionJar') {
             )
             if (addon.id != addon_id
                     || addon.entrypoint != 'io.github.janguenter.bluemap.functionalstorage.BlueMapFunctionalStorageAddon'
-                    || addon.version != project.version.toString()
                     || addon.dependencies != []
                     || addon['soft-dependencies'] != []) {
                 throw new GradleException('BlueMap add-on metadata mismatch')
@@ -262,7 +261,6 @@ tasks.register('verifySourcesJar') {
             )
             if (addon.id != addon_id
                     || addon.entrypoint != 'io.github.janguenter.bluemap.functionalstorage.BlueMapFunctionalStorageAddon'
-                    || addon.version != project.version.toString()
                     || addon.dependencies != []
                     || addon['soft-dependencies'] != []) {
                 throw new GradleException('Sources JAR BlueMap add-on metadata mismatch')

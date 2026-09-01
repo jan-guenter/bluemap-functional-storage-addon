@@ -10,7 +10,8 @@ Use Java 21, Gradle 9.6.1, the exact sibling BlueMap checkout, and the exact
 local Functional Storage and Titanium artifacts:
 
 ```bash
-git submodule update --init --recursive -- tooling/bluemap-addon-toolkit
+git submodule update --init --recursive -- \
+  tooling/bluemap-addon-toolkit modules/bluemap-addon-adapter-api
 python -m pip install --disable-pip-version-check --no-deps \
   --require-hashes --only-binary=:all: \
   --requirement requirements/toolkit.txt
@@ -19,9 +20,10 @@ bluemap-addon-toolkit conventions check .
 
 ```bash
 gradle --no-daemon \
+  -PbluemapSourcePath=/absolute/path/to/BlueMap-at-7e07f4e7 \
   -PfunctionalStorageJar=/absolute/path/functionalstorage-1.21.1-1.5.8.jar \
   -PtitaniumJar=/absolute/path/titanium-1.21-4.0.45.jar \
-  -PreleaseTag=v0.1.0-alpha.1 \
+  -PreleaseTag=v0.1.0-alpha.2 \
   clean check build generatePomFileForAddonPublication \
   generateMetadataFileForAddonPublication verifyPublicationArtifacts \
   verifyReleaseCandidate
@@ -29,14 +31,16 @@ gradle --no-daemon \
 
 Inspect the production and sources JARs. Reject NeoForge metadata, nested
 JARs, third-party classes/assets, gallery output, tests, research data, or
-unexpanded metadata.
+unexpanded metadata. Require exactly the four shared Adapter API source/class
+paths once and reject the displaced local helper types.
 
 ## Runtime and publication
 
 Run the deterministic [gallery](../gallery/README.md) against that exact JAR,
 open the intended BlueMap link for the required lightweight sanity check, and
-obtain explicit owner acceptance. Do not substitute a functional rebuild
-afterward; only the recorded final-version manifest transition is permitted.
+obtain explicit owner acceptance for the exact candidate JAR. Rebuild twice
+with the exact inputs and require byte-identical artifacts before sealing the
+release identity.
 
 Before tagging, merge the independently audited release pull request. Create
 and push an annotated `v<addon_version>` tag at that reviewed `main` commit.

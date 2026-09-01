@@ -1,87 +1,90 @@
 {
   "schema_version": 1,
-  "status": "owner-accepted-release-candidate",
-  "version": "0.1.0-alpha.1",
-  "release_date": "2026-08-21",
+  "status": "unpublished-migration-candidate",
+  "published": false,
+  "version": "0.1.0-alpha.2",
+  "release_date": "2026-09-01",
   "repository": "https://github.com/jan-guenter/bluemap-functional-storage-addon",
-  "tag": "v0.1.0-alpha.1",
-  "maven_coordinate": "io.github.jan-guenter:bluemap-functional-storage-addon:0.1.0-alpha.1",
-  "owner_accepted_staging": {
-    "commit": "9bfbe38abfe783606b1d783a3f53b7916fd7507f",
-    "tree": "79d61bd67847b4c863eecde8383a08f418f7e02e",
-    "production_jar_size": 82282,
-    "production_jar_sha256": "be99d6529c83e3610fce1a8a0cd611d5bda364797e42120bf62db60d5b995409",
-    "visual_acceptance": true,
-    "gallery_checks": "29/29 with zero failures at immediate, 20-tick, and 100-tick phases"
+  "tag": "v0.1.0-alpha.2",
+  "maven_coordinate": "io.github.jan-guenter:bluemap-functional-storage-addon:0.1.0-alpha.2",
+  "bluemap": {
+    "version": "5.22-feature.backport-5.23-stateless-java-web-server-46",
+    "commit": "7e07f4e74ec1e92a6ead9aa1e66054af3e133aac",
+    "api_commit": "285c9a60eff3ac2b0cab308ce1058d1565be0971"
   },
-  "final_release_artifacts": {
+  "adapter_api": {
+    "version": "0.1.0-alpha.2",
+    "commit": "e81f08bc4bfbf02d810ec8949a019130e2e61634",
+    "source_tree": "2f974c9bb2ba13888d69682f86f30f58922d30eb",
+    "source_files_compiled": 4,
+    "module_jar_installed": false,
+    "module_jar_bundled": false,
+    "module_jar_nested": false,
+    "local_adapter_package": "io.github.janguenter.bluemap.functionalstorage.adapter.bluemap523"
+  },
+  "baseline_release": {
+    "version": "0.1.0-alpha.1",
+    "tag": "v0.1.0-alpha.1",
+    "commit": "d085e3a4450dd2e8b1dc6d54541054ee36b4646c",
+    "production_jar_size": 82274,
+    "production_jar_sha256": "ffe80812802c2c8f68d50ee74f17dd492561f3b44a9e650545064f66e285b048",
+    "owner_visual_acceptance": "2026-08-21"
+  },
+  "candidate_artifacts": {
     "production_jar": {
-      "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.1.jar",
-      "size": 82274,
-      "sha256": "ffe80812802c2c8f68d50ee74f17dd492561f3b44a9e650545064f66e285b048"
+      "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2.jar",
+      "size": 85323,
+      "sha256": "0bc4c0ed0195093487967260fc8ec2dbb4c9f389635098deb1bcc9e7839c1cfc"
     },
     "sources_jar": {
-      "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.1-sources.jar",
-      "size": 39515,
-      "sha256": "5b5b91d6d17f658a8de6dc99920e39bbe0e54518d5f2b9093760c9e17b13d9ef"
+      "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2-sources.jar",
+      "size": 42745,
+      "sha256": "9d1fedeedeb1c90ee7ba978e12a59d0429693fcae512458cf3fad75e05e449d6"
     },
     "pom": {
-      "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.1.pom",
+      "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2.pom",
       "size": 1397,
-      "sha256": "1d037275fa62154cf962e408497235e43d96e039a2eb39b6e142638320a04d0a"
+      "sha256": "10363158b57fbf999d7bfa833cb579bf72d621864464a6407130850c4d04e2bc"
     },
     "gradle_module": {
-      "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.1.module.json",
+      "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2.module.json",
       "size": 2894,
-      "sha256": "2ba7a4cc10ebcc230cf2128bbf086817985d94e7efa0a6e2945866e043ea330f"
+      "sha256": "4b07b9d47bc58e1099f06544a96e0f729d56e2df92934f510f20c60f8f979581"
     },
     "sha256sums": {
       "file_name": "SHA256SUMS",
       "size": 492,
-      "sha256": "7347224cc6b08775e3eed26124edd46514d5ce485b1c7a2459f24122ef73ffff"
+      "sha256": "6570259ac1787527fdd7f49b99d44ab81dee50ef6cba88eddf86b371317625d6"
     }
   },
-  "staged_equivalence": {
-    "entry_manifest": "provenance/accepted-staging-entries.sha256",
-    "identical_non_manifest_entries": 44,
-    "whole_jar_byte_identical": false,
-    "only_changed_entry": "META-INF/MANIFEST.MF",
-    "change_reason": "Implementation-Version changed from the staged SNAPSHOT marker to the final release version."
-  },
-  "gallery": {
-    "archive_file_name": "bluemap-functional-storage-gallery.zip",
-    "size": 4697,
-    "sha256": "51dd3845398b9c624631e227468bcce65e693dce15e2f764c67dfe8ba9fddd27",
-    "placements": 12,
-    "assertions_per_phase": 29,
-    "phases": 3,
-    "published_as_release_asset": false
+  "preserved_contract": {
+    "routed_hosts": 10,
+    "gallery_placements": 12,
+    "gallery_assertions_per_phase": 29,
+    "gallery_sources_changed": false,
+    "profiles_and_resources_changed": false,
+    "renderer_behavior_changed": false,
+    "stock_fallback_changed": false
   },
   "ephemeral_ci_inputs": {
     "functional_storage": {
-      "curseforge_project": 556861,
-      "curseforge_file": 8459097,
       "size": 810628,
       "sha256": "e3e7368c28a24e7de5b877988aa92cc94ca7417c8f60b7d28e7f584a94a51147"
     },
     "titanium": {
-      "curseforge_project": 287342,
-      "curseforge_file": 8426819,
       "size": 606801,
       "sha256": "d224a9bd5cfb9e921ba644b2a7a2ce1041f879a9945f80dacebd87d95888530c"
-    },
-    "policy": "Downloaded only into the ephemeral runner, verified before use, and never bundled or uploaded."
+    }
   },
   "verification": {
-    "production_jar_exact_byte_gate": true,
-    "sources_jar_exact_byte_gate": true,
-    "publication_metadata_exact_byte_gate": true,
-    "gallery_archive_exact_byte_gate": true,
-    "exact_input_pair_gate": true,
-    "compiler_debug_metadata_gate": "source,lines"
-  },
-  "immutable_packaged_provenance": {
-    "path": "provenance/upstreams.json",
-    "note": "Implementation provenance packaged in the accepted JAR remains byte-identical. Release-only identities, including Titanium CurseForge 287342/8426819, are kept outside the JAR."
+    "exact_input_gate": true,
+    "adapter_api_gitlink_and_source_tree_gate": true,
+    "production_archive_boundary_gate": true,
+    "sources_archive_boundary_gate": true,
+    "local_candidate_artifact_identity_gate": true,
+    "authoritative_pr_ci_reproduction": false,
+    "local_gradle_version": "9.6.1",
+    "local_java_runtime": "21.0.12.1+1",
+    "exact_alpha_2_runtime_review": false
   }
 }
