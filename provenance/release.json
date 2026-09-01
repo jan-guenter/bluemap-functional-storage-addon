@@ -91,7 +91,9 @@
     "bluenbt_hot_add_recovery_test": true,
     "exact_installed_variant_selection_test": true,
     "pre_wrapper_renderer_identity_test": true,
-    "authoritative_pr_ci_reproduction": false,
+    "authoritative_pr_ci_reproduction": true,
+    "authoritative_pr_ci_run_id": 33527991736,
+    "authoritative_pr_ci_head_commit": "f46c7687d945b5f6a9bbac62cd26a09fcdde98a2",
     "local_gradle_version": "9.6.1",
     "local_java_runtime": "21.0.12.1+1",
     "exact_alpha_2_runtime_review": true
