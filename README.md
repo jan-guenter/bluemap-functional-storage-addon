@@ -6,7 +6,7 @@ Experimental support for the static installed-material shells of Functional
 Storage's ten framed blocks on the exact BlueMap 5.23 feature backport in All
 the Mons 1.2.0.
 
-Version `0.1.0-alpha.2` is the unpublished BlueMap 5.23 migration candidate.
+Version `0.1.0-alpha.2` is the owner-accepted BlueMap 5.23 release candidate.
 Its production JAR is 89,631 bytes with SHA-256
 `a8f0fd42f34d5902993ecd4b69c3bd464c077de3100cd1c6380add81d43e181b`.
 It preserves the alpha.1 gallery and fallback contract; alpha.1's staging
