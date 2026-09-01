@@ -42,12 +42,29 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.named('test', Test).configure {
+    exclude '**/BlueNbtHotAddIsolationTest.class'
     ['functionalStorageJar', 'titaniumJar'].each { propertyName ->
         def value = providers.gradleProperty(propertyName)
         if (value.isPresent()) {
             systemProperty propertyName, value.get()
         }
     }
+}
+
+tasks.register('hotAddBlueNbtTest', Test) {
+    description = 'Runs the shared-BlueNBT hot-add recovery oracle in an isolated JVM.'
+    group = LifecycleBasePlugin.VERIFICATION_GROUP
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching '*BlueNbtHotAddIsolationTest'
+    }
+    forkEvery = 1
+    maxParallelForks = 1
+}
+
+tasks.named('check').configure {
+    dependsOn tasks.named('hotAddBlueNbtTest')
 }
 
 tasks.named('jar', Jar).configure {
@@ -150,6 +167,7 @@ tasks.register('verifyProductionJar') {
             def entries = zip.entries().findAll { !it.directory }.collect { it.name }
             def required = [
                     'bluemap.addon.json',
+                    'io/github/janguenter/bluemap/functionalstorage/adapter/bluemap523/BlueNbtHotAddSupport.class',
                     'assets/bluemap_functionalstorage/blockstates/framed_shell.json',
                     'bluemap-functionalstorage/profiles/functionalstorage/1.5.8/profile.json',
                     'META-INF/LICENSE-bluemap-functional-storage-addon',
@@ -234,6 +252,7 @@ tasks.register('verifySourcesJar') {
             def entries = zip.entries().findAll { !it.directory }.collect { it.name }
             def required = [
                     'io/github/janguenter/bluemap/functionalstorage/BlueMapFunctionalStorageAddon.java',
+                    'io/github/janguenter/bluemap/functionalstorage/adapter/bluemap523/BlueNbtHotAddSupport.java',
                     'io/github/janguenter/bluemap/functionalstorage/adapter/bluemap523/FunctionalStorageRenderer.java',
                     'io/github/janguenter/bluemap/functionalstorage/model/ChildShellCatalog.java',
                     'bluemap.addon.json',

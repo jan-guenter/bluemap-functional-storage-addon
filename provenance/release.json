@@ -33,13 +33,13 @@
   "candidate_artifacts": {
     "production_jar": {
       "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2.jar",
-      "size": 85323,
-      "sha256": "0bc4c0ed0195093487967260fc8ec2dbb4c9f389635098deb1bcc9e7839c1cfc"
+      "size": 88643,
+      "sha256": "eeb6f72b7b437f884470f4e3de2c96adf5d7d9c5efb8bcda8fd84eb31e39fb94"
     },
     "sources_jar": {
       "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2-sources.jar",
-      "size": 42745,
-      "sha256": "9d1fedeedeb1c90ee7ba978e12a59d0429693fcae512458cf3fad75e05e449d6"
+      "size": 44740,
+      "sha256": "34aeccf1eb4f7c875bb4da8806ff7273ff79c00ff7c2299cb5c7290652d65fb1"
     },
     "pom": {
       "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2.pom",
@@ -49,12 +49,12 @@
     "gradle_module": {
       "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2.module.json",
       "size": 2894,
-      "sha256": "4b07b9d47bc58e1099f06544a96e0f729d56e2df92934f510f20c60f8f979581"
+      "sha256": "4bf4fe03556ea75a1d179c1c9e5e8484933ba9ab974d20a7c8ed011e9149730c"
     },
     "sha256sums": {
       "file_name": "SHA256SUMS",
       "size": 492,
-      "sha256": "6570259ac1787527fdd7f49b99d44ab81dee50ef6cba88eddf86b371317625d6"
+      "sha256": "26a789492d4f057adffcbb4d0b9f79f16e3860f18aa33d06539463df376a3346"
     }
   },
   "preserved_contract": {
@@ -63,7 +63,7 @@
     "gallery_assertions_per_phase": 29,
     "gallery_sources_changed": false,
     "profiles_and_resources_changed": false,
-    "renderer_behavior_changed": false,
+    "renderer_behavior_changed": true,
     "stock_fallback_changed": false
   },
   "ephemeral_ci_inputs": {
@@ -82,6 +82,8 @@
     "production_archive_boundary_gate": true,
     "sources_archive_boundary_gate": true,
     "local_candidate_artifact_identity_gate": true,
+    "bluenbt_hot_add_recovery_test": true,
+    "exact_installed_variant_selection_test": true,
     "authoritative_pr_ci_reproduction": false,
     "local_gradle_version": "9.6.1",
     "local_java_runtime": "21.0.12.1+1",

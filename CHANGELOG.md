@@ -11,6 +11,11 @@
 - Rename the local adapter package from `bluemap522` to `bluemap523` while
   preserving the accepted ten-host renderer, profile, gallery, and fallback
   behavior.
+- Select installed host transforms from the exact hash-gated Functional
+  Storage artifact so combined resource packs cannot invalidate framed-shell
+  rendering.
+- Refresh BlueNBT 3.5.1's shared resolver caches after late DTO registration
+  and verify exact framed material retention before activation.
 
 ## 0.1.0-alpha.1 - 2026-08-21
 

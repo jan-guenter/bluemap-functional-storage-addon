@@ -72,6 +72,10 @@ final class FunctionalStorageResourceExtension implements ResourcePackExtension 
             runtime.inactive("synthetic-dispatch-invalid");
             return;
         }
+        if (!BlueNbtHotAddSupport.retainsPersistedFramedMaterial()) {
+            runtime.inactive("bluenbt-retention-probe-failed");
+            return;
+        }
         try {
             runtime.activate(ChildShellCatalog.load(functionalStorage.orElseThrow()));
         } catch (IOException | RuntimeException exception) {

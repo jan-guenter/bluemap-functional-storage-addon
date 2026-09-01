@@ -14,6 +14,8 @@ import com.google.gson.JsonParser;
 import de.bluecolored.bluemap.core.resources.ResourcePath;
 import de.bluecolored.bluemap.core.resources.adapter.ResourcesGson;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.ResourcePack;
+import de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.BlockState;
+import de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.Variant;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.model.Element;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.model.Face;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.model.Model;
@@ -48,17 +50,21 @@ public final class ChildShellCatalog {
 
     private final Map<String, List<Child>> hosts;
     private final Map<Key, ModelStructure> modelStructures;
+    private final Map<String, BlockState> installedBlockStates;
 
     private ChildShellCatalog(
             Map<String, List<Child>> hosts,
-            Map<Key, ModelStructure> modelStructures
+            Map<Key, ModelStructure> modelStructures,
+            Map<String, BlockState> installedBlockStates
     ) {
         this.hosts = Map.copyOf(hosts);
         this.modelStructures = Map.copyOf(modelStructures);
+        this.installedBlockStates = Map.copyOf(installedBlockStates);
     }
 
     public static ChildShellCatalog load(Path functionalStorageJar) throws IOException {
         Map<String, List<Child>> parsed = new LinkedHashMap<>();
+        Map<String, BlockState> blockStates = new LinkedHashMap<>();
         Map<Key, ModelStructure> structures;
         try (ZipFile zip = new ZipFile(functionalStorageJar.toFile())) {
             for (Map.Entry<String, FunctionalStorageProfile.Host> entry
@@ -82,17 +88,36 @@ public final class ChildShellCatalog {
                     root = element.getAsJsonObject();
                 }
                 parsed.put(hostId, parseHost(hostId, entry.getValue(), root));
+                blockStates.put(hostId, loadBlockState(zip, entry.getValue().path()));
             }
             structures = loadModelStructures(zip, parsed);
         }
-        if (!parsed.keySet().equals(FunctionalStorageProfile.HOST_IDS)) {
+        if (!parsed.keySet().equals(FunctionalStorageProfile.HOST_IDS)
+                || !blockStates.keySet().equals(FunctionalStorageProfile.HOST_IDS)) {
             throw new IOException("framed host roster mismatch");
         }
-        return new ChildShellCatalog(parsed, structures);
+        return new ChildShellCatalog(parsed, structures, blockStates);
     }
 
     public List<Child> children(String hostId) {
         return hosts.get(hostId);
+    }
+
+    /** Selects transforms from the exact installed artifact, not an override pack. */
+    public List<Variant> selectInstalledVariants(
+            String hostId,
+            de.bluecolored.bluemap.core.world.BlockState state,
+            int x,
+            int y,
+            int z
+    ) {
+        BlockState installed = installedBlockStates.get(hostId);
+        if (installed == null || state == null) {
+            return null;
+        }
+        List<Variant> selected = new ArrayList<>();
+        installed.forEach(state, x, y, z, selected::add);
+        return List.copyOf(selected);
     }
 
     public boolean validateModels(ResourcePack resourcePack) {
@@ -199,6 +224,29 @@ public final class ChildShellCatalog {
             throw new IOException("child model structure roster mismatch");
         }
         return Map.copyOf(structures);
+    }
+
+    private static BlockState loadBlockState(ZipFile zip, String path)
+            throws IOException {
+        String resource = "assets/functionalstorage/blockstates/" + path + ".json";
+        ZipEntry entry = zip.getEntry(resource);
+        if (entry == null || entry.isDirectory()
+                || entry.getSize() < 2 || entry.getSize() > 256 * 1024) {
+            throw new IOException("missing or oversized blockstate " + resource);
+        }
+        try (InputStream input = zip.getInputStream(entry);
+             InputStreamReader reader = new InputStreamReader(
+                     input, StandardCharsets.UTF_8)) {
+            BlockState blockState = ResourcesGson.INSTANCE.fromJson(
+                    reader, BlockState.class
+            );
+            if (blockState == null) {
+                throw new IOException("invalid blockstate " + resource);
+            }
+            return blockState;
+        } catch (RuntimeException exception) {
+            throw new IOException("invalid blockstate " + resource, exception);
+        }
     }
 
     private static List<Child> parseHost(

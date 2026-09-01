@@ -7,9 +7,9 @@ Storage's ten framed blocks on the exact BlueMap 5.23 feature backport in All
 the Mons 1.2.0.
 
 Version `0.1.0-alpha.2` is the unpublished BlueMap 5.23 migration candidate.
-Its production JAR is 85,323 bytes with SHA-256
-`0bc4c0ed0195093487967260fc8ec2dbb4c9f389635098deb1bcc9e7839c1cfc`.
-It preserves the alpha.1 renderer and gallery contract; alpha.1's staging
+Its production JAR is 88,643 bytes with SHA-256
+`eeb6f72b7b437f884470f4e3de2c96adf5d7d9c5efb8bcda8fd84eb31e39fb94`.
+It preserves the alpha.1 gallery and fallback contract; alpha.1's staging
 gallery passed all 29 assertions with zero failures at the immediate, 20-tick
 and 100-tick phases on 2026-08-21. Its deterministic gallery ZIP remains
 4,697 bytes with SHA-256
@@ -56,6 +56,9 @@ installed child.
 Only `front`, `side`, and an installed `front_divider` are substituted. Native
 `tank` and `display` children plus the ordinary lock overlay stay
 resource-driven, including the exact native controller-display animation.
+Host transforms are selected from blockstates inside the same hash-gated
+Functional Storage artifact. This prevents unrelated combined-pack resources
+from replacing the installed variant source used by the custom renderer.
 
 Effective child geometry must match structural signatures derived at runtime
 from the exact Functional Storage artifact. Operator PNG replacements through
@@ -68,6 +71,8 @@ Ender Drawer frequency, armory contents, particles, target-material animation,
 and every other Functional Storage block remain stock. Missing or unsupported
 input falls back atomically to BlueMap's stock renderer; removing the add-on
 and restarting restores stock behavior without world migration.
+The adapter also verifies its framed DTO through BlueMap's shared BlueNBT
+parser and refreshes BlueNBT 3.5.1's resolver caches after late registration.
 
 ## Source and asset policy
 

@@ -63,6 +63,10 @@ public final class BlueMap523Adapter {
                 return false;
             }
         }
+        if (!BlueNbtHotAddSupport.refreshSharedDeserializerCache()) {
+            RUNTIME.inactive("bluenbt-cache-refresh-failed");
+            return false;
+        }
         return true;
     }
 
