@@ -52,7 +52,10 @@ final class FunctionalStorageRenderer implements BlockRenderer {
         BlockItemDefaultStateResolver itemResolver =
                 BlockItemDefaultStateResolver.createVerified();
         this.materials = itemResolver == null
-                ? null : new BlockMaterialResolver(resourcePack, itemResolver);
+                ? null : new BlockMaterialResolver(
+                        resourcePack, itemResolver,
+                        BlueMap523Adapter.extension(resourcePack)
+                );
     }
 
     @Override

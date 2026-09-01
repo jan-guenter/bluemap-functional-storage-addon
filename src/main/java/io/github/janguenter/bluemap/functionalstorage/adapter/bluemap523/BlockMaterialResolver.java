@@ -38,14 +38,17 @@ final class BlockMaterialResolver {
 
     private final ResourcePack resourcePack;
     private final BlockItemDefaultStateResolver itemResolver;
+    private final FunctionalStorageResourceExtension extension;
     private final BlockColorCalculator colors;
 
     BlockMaterialResolver(
             ResourcePack resourcePack,
-            BlockItemDefaultStateResolver itemResolver
+            BlockItemDefaultStateResolver itemResolver,
+            FunctionalStorageResourceExtension extension
     ) {
         this.resourcePack = resourcePack;
         this.itemResolver = itemResolver;
+        this.extension = extension;
         this.colors = resourcePack.createBlockColorCalculator();
     }
 
@@ -66,7 +69,10 @@ final class BlockMaterialResolver {
         }
         Variant variant = variants.get(0);
         Model model = variant.getModel().getResource(resourcePack.getModels()::get);
-        if (!canonicalVariant(variant, model)) {
+        if (extension == null
+                || !extension.originallyRenderedBy(
+                        variant, BlockRendererType.DEFAULT)
+                || !canonicalVariant(variant, model, true)) {
             return Optional.empty();
         }
         int tint = colors.getBlockColor(host, state, new Color()).getInt() | 0xFF00_0000;
@@ -89,8 +95,19 @@ final class BlockMaterialResolver {
     }
 
     static boolean canonicalVariant(Variant variant, Model model) {
+        return canonicalVariant(
+                variant, model,
+                variant != null && variant.getRenderer() == BlockRendererType.DEFAULT
+        );
+    }
+
+    static boolean canonicalVariant(
+            Variant variant,
+            Model model,
+            boolean originallyDefault
+    ) {
         if (variant == null
-                || variant.getRenderer() != BlockRendererType.DEFAULT
+                || !originallyDefault
                 || variant.isUvlock()
                 || variant.isTransformed()
                 || Double.compare(variant.getWeight(), 1D) != 0

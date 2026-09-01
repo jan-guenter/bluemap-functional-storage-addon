@@ -167,17 +167,17 @@ jobs:
             verifyPublicationArtifacts verifyReleaseCandidate
           test "$(stat -c %s \
             "build/libs/bluemap-functional-storage-addon-${VERSION}.jar")" \
-            -eq 88643
+            -eq 89631
           test "$(stat -c %s \
             "build/libs/bluemap-functional-storage-addon-${VERSION}-sources.jar")" \
-            -eq 44740
+            -eq 45156
           test "$(stat -c %s build/publications/addon/pom-default.xml)" -eq 1397
           test "$(stat -c %s build/publications/addon/module.json)" -eq 2894
           sha256sum --check <<SHA256SUMS
-          eeb6f72b7b437f884470f4e3de2c96adf5d7d9c5efb8bcda8fd84eb31e39fb94  build/libs/bluemap-functional-storage-addon-${VERSION}.jar
-          34aeccf1eb4f7c875bb4da8806ff7273ff79c00ff7c2299cb5c7290652d65fb1  build/libs/bluemap-functional-storage-addon-${VERSION}-sources.jar
+          a8f0fd42f34d5902993ecd4b69c3bd464c077de3100cd1c6380add81d43e181b  build/libs/bluemap-functional-storage-addon-${VERSION}.jar
+          16dd06573a792d42026576a36b572bdb28064767f18a2deadba74dedd0bf03af  build/libs/bluemap-functional-storage-addon-${VERSION}-sources.jar
           10363158b57fbf999d7bfa833cb579bf72d621864464a6407130850c4d04e2bc  build/publications/addon/pom-default.xml
-          4bf4fe03556ea75a1d179c1c9e5e8484933ba9ab974d20a7c8ed011e9149730c  build/publications/addon/module.json
+          5cd7042232eea989598c2d07d30c98bdca321d7f964aa68c9b5a6eee6e26b845  build/publications/addon/module.json
           SHA256SUMS
 
       - name: Prepare deterministic release bundle
@@ -202,7 +202,7 @@ jobs:
           (cd release && sha256sum --check SHA256SUMS)
           test "$(stat -c %s release/SHA256SUMS)" -eq 492
           test "$(sha256sum release/SHA256SUMS | cut -d ' ' -f 1)" = \
-            26a789492d4f057adffcbb4d0b9f79f16e3860f18aa33d06539463df376a3346
+            b93091d40c8e2c98b98d513a51967ef15a9d1ff8e812aaab790f664eb4faa3eb
 
       - name: Create or refresh draft prerelease
         env:

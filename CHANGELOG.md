@@ -16,6 +16,8 @@
   rendering.
 - Refresh BlueNBT 3.5.1's shared resolver caches after late DTO registration
   and verify exact framed material retention before activation.
+- Preserve the pre-wrapper default-renderer identity of admitted materials so
+  later combined-pack renderer wrappers do not erase framed shell geometry.
 
 ## 0.1.0-alpha.1 - 2026-08-21
 

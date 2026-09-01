@@ -33,13 +33,13 @@
   "candidate_artifacts": {
     "production_jar": {
       "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2.jar",
-      "size": 88643,
-      "sha256": "eeb6f72b7b437f884470f4e3de2c96adf5d7d9c5efb8bcda8fd84eb31e39fb94"
+      "size": 89631,
+      "sha256": "a8f0fd42f34d5902993ecd4b69c3bd464c077de3100cd1c6380add81d43e181b"
     },
     "sources_jar": {
       "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2-sources.jar",
-      "size": 44740,
-      "sha256": "34aeccf1eb4f7c875bb4da8806ff7273ff79c00ff7c2299cb5c7290652d65fb1"
+      "size": 45156,
+      "sha256": "16dd06573a792d42026576a36b572bdb28064767f18a2deadba74dedd0bf03af"
     },
     "pom": {
       "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2.pom",
@@ -49,12 +49,12 @@
     "gradle_module": {
       "file_name": "bluemap-functional-storage-addon-0.1.0-alpha.2.module.json",
       "size": 2894,
-      "sha256": "4bf4fe03556ea75a1d179c1c9e5e8484933ba9ab974d20a7c8ed011e9149730c"
+      "sha256": "5cd7042232eea989598c2d07d30c98bdca321d7f964aa68c9b5a6eee6e26b845"
     },
     "sha256sums": {
       "file_name": "SHA256SUMS",
       "size": 492,
-      "sha256": "26a789492d4f057adffcbb4d0b9f79f16e3860f18aa33d06539463df376a3346"
+      "sha256": "b93091d40c8e2c98b98d513a51967ef15a9d1ff8e812aaab790f664eb4faa3eb"
     }
   },
   "preserved_contract": {
@@ -84,6 +84,7 @@
     "local_candidate_artifact_identity_gate": true,
     "bluenbt_hot_add_recovery_test": true,
     "exact_installed_variant_selection_test": true,
+    "pre_wrapper_renderer_identity_test": true,
     "authoritative_pr_ci_reproduction": false,
     "local_gradle_version": "9.6.1",
     "local_java_runtime": "21.0.12.1+1",
