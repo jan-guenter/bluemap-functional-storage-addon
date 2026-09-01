@@ -2,12 +2,10 @@
  * SPDX-License-Identifier: MIT
  */
 
-package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
+package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap523;
 
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.ResourcePack;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.ResourcePackExtension;
-import de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.VariantSet;
-import de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.Variants;
 import de.bluecolored.bluemap.core.util.Key;
 import de.bluecolored.bluemap.core.world.BlockProperties;
 import de.bluecolored.bluemap.core.world.BlockState;
@@ -132,15 +130,6 @@ final class FunctionalStorageResourceExtension implements ResourcePackExtension 
     private static boolean validDispatch(
             de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.BlockState state
     ) {
-        if (state == null || state.getMultipart() != null) {
-            return false;
-        }
-        Variants variants = state.getVariants();
-        if (variants == null || variants.getDefaultVariant() == null) {
-            return false;
-        }
-        VariantSet set = variants.getDefaultVariant();
-        return set.getVariants().length == 1
-                && BlueMap522Adapter.isExpectedDispatch(set.getVariants()[0]);
+        return BlueMap523Adapter.isExpectedDispatch(state);
     }
 }

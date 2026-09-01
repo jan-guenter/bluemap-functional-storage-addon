@@ -7,7 +7,7 @@ package io.github.janguenter.bluemap.functionalstorage.model;
 import de.bluecolored.bluemap.core.util.Key;
 import de.bluecolored.bluemap.core.world.BlockState;
 import de.bluecolored.bluemap.core.world.mca.blockentity.MCABlockEntity;
-import io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522.FunctionalStorageBlockEntityData;
+import io.github.janguenter.bluemap.functionalstorage.adapter.bluemap523.FunctionalStorageBlockEntityData;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Field;

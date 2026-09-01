@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
+package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap523;
 
 import com.flowpowered.math.vector.Vector4f;
 import de.bluecolored.bluemap.core.map.hires.RenderSettings;
