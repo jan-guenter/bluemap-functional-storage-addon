@@ -2,12 +2,12 @@
  * SPDX-License-Identifier: MIT
  */
 
-package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
+package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap523;
 
+import de.bluecolored.bluemap.core.map.hires.block.BlockRendererType;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.ResourcePack;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.ResourcePackExtension;
-import de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.VariantSet;
-import de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.Variants;
+import de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.Variant;
 import de.bluecolored.bluemap.core.util.Key;
 import de.bluecolored.bluemap.core.world.BlockProperties;
 import de.bluecolored.bluemap.core.world.BlockState;
@@ -18,7 +18,10 @@ import io.github.janguenter.bluemap.functionalstorage.profile.FunctionalStorageP
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,6 +34,8 @@ final class FunctionalStorageResourceExtension implements ResourcePackExtension 
 
     private final ResourcePack resourcePack;
     private final FunctionalStorageRuntime runtime;
+    private volatile Map<Variant, BlockRendererType> originalRenderers = Map.of();
+    private boolean rendererSnapshotCaptured;
 
     FunctionalStorageResourceExtension(
             ResourcePack resourcePack,
@@ -42,6 +47,7 @@ final class FunctionalStorageResourceExtension implements ResourcePackExtension 
 
     @Override
     public void loadResources(Iterable<Path> roots) {
+        captureOriginalRenderers();
         if (Boolean.getBoolean("bluemap.functionalstorage.disabled")) {
             runtime.inactive("operator-disabled");
             return;
@@ -74,11 +80,33 @@ final class FunctionalStorageResourceExtension implements ResourcePackExtension 
             runtime.inactive("synthetic-dispatch-invalid");
             return;
         }
+        if (!BlueNbtHotAddSupport.retainsPersistedFramedMaterial()) {
+            runtime.inactive("bluenbt-retention-probe-failed");
+            return;
+        }
         try {
             runtime.activate(ChildShellCatalog.load(functionalStorage.orElseThrow()));
         } catch (IOException | RuntimeException exception) {
             runtime.inactive("installed-child-shell-invalid");
         }
+    }
+
+    boolean originallyRenderedBy(Variant variant, BlockRendererType renderer) {
+        return originalRenderers.get(variant) == renderer;
+    }
+
+    void captureOriginalRenderers() {
+        if (rendererSnapshotCaptured) {
+            return;
+        }
+        IdentityHashMap<Variant, BlockRendererType> captured = new IdentityHashMap<>();
+        resourcePack.getBlockStates().values().forEach(state -> state.forEach(variant -> {
+            if (variant.getRenderer() == BlockRendererType.DEFAULT) {
+                captured.put(variant, BlockRendererType.DEFAULT);
+            }
+        }));
+        originalRenderers = Collections.unmodifiableMap(captured);
+        rendererSnapshotCaptured = true;
     }
 
     @Override
@@ -132,15 +160,6 @@ final class FunctionalStorageResourceExtension implements ResourcePackExtension 
     private static boolean validDispatch(
             de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.BlockState state
     ) {
-        if (state == null || state.getMultipart() != null) {
-            return false;
-        }
-        Variants variants = state.getVariants();
-        if (variants == null || variants.getDefaultVariant() == null) {
-            return false;
-        }
-        VariantSet set = variants.getDefaultVariant();
-        return set.getVariants().length == 1
-                && BlueMap522Adapter.isExpectedDispatch(set.getVariants()[0]);
+        return BlueMap523Adapter.isExpectedDispatch(state);
     }
 }

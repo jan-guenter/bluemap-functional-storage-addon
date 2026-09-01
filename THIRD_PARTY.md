@@ -2,7 +2,8 @@
 
 | Project | Use | Version | License | Packaged content |
 | --- | --- | --- | --- | --- |
-| BlueMap | Compile-time ABI and adapted renderer mechanics | `5.22-agent.backport-5.22-mc1.21.1-2` at `9be321df995a1103808621d529eb72773e719d4d` | MIT | License notice only |
+| BlueMap | Compile-time ABI and adapted renderer mechanics | `5.22-feature.backport-5.23-stateless-java-web-server-46` at `7e07f4e74ec1e92a6ead9aa1e66054af3e133aac` | MIT | License notice only |
+| BlueMap Add-on Adapter API | Runtime identity, registry, extension and dispatch helpers compiled from exact source | `0.1.0-alpha.2` at `e81f08bc4bfbf02d810ec8949a019130e2e61634` | MIT | Four source classes and license |
 | Functional Storage | Exact operator-installed runtime resources | `1.21.1-1.5.8` | MIT | No |
 | Titanium | Exact operator-installed runtime evidence | `1.21-4.0.45` | LGPL-3.0 | No |
 | Checkstyle | Source style | `10.18.2` | LGPL-2.1-or-later | No |

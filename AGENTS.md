@@ -5,8 +5,12 @@ BlueMap renderer. Read this file and `README.md` before changing the project.
 
 ## Frozen release scope
 
-- Target Java 21, Minecraft 1.21.1, NeoForge 21.1.248 and the audited BlueMap
-  5.22 Java-21 backport.
+- Target Java 21, Minecraft 1.21.1, NeoForge 21.1.248 and exact BlueMap
+  feature-backport commit `7e07f4e74ec1e92a6ead9aa1e66054af3e133aac` with
+  API commit `285c9a60eff3ac2b0cab308ce1058d1565be0971`.
+- Compile the four Adapter API helpers from exact gitlink
+  `e81f08bc4bfbf02d810ec8949a019130e2e61634`; never install, bundle, or nest
+  its standalone JAR. Keep local adapter code under `adapter.bluemap523`.
 - Activate only when both exact installed artifacts match the byte identities
   in `provenance/upstreams.json`: Functional Storage 1.5.8 and Titanium 4.0.45.
 - Own exactly the ten block IDs in the packaged profile. Each host must have a
@@ -45,10 +49,13 @@ BlueMap renderer. Read this file and `README.md` before changing the project.
 ## Release gate
 
 ```bash
+git submodule update --init --recursive -- \
+  tooling/bluemap-addon-toolkit modules/bluemap-addon-adapter-api
 gradle --no-daemon \
+  -PbluemapSourcePath=/absolute/path/to/BlueMap-at-7e07f4e7 \
   -PfunctionalStorageJar=/absolute/path/functionalstorage-1.21.1-1.5.8.jar \
   -PtitaniumJar=/absolute/path/titanium-1.21-4.0.45.jar \
-  -PreleaseTag=v0.1.0-alpha.1 \
+  -PreleaseTag=v0.1.0-alpha.2 \
   clean check build generatePomFileForAddonPublication \
   generateMetadataFileForAddonPublication verifyPublicationArtifacts \
   verifyReleaseCandidate
@@ -58,6 +65,7 @@ For a narrower exact-artifact test rerun, use:
 
 ```bash
 gradle --no-daemon test \
+  -PbluemapSourcePath=/absolute/path/to/BlueMap-at-7e07f4e7 \
   -PfunctionalStorageJar=/path/to/functionalstorage-1.21.1-1.5.8.jar \
   -PtitaniumJar=/path/to/titanium-1.21-4.0.45.jar
 ```

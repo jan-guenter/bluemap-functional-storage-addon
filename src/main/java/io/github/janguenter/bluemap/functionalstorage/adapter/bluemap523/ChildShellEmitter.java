@@ -6,7 +6,7 @@
  * exact variant transforms, and UV lock.
  */
 
-package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
+package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap523;
 
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector4f;
@@ -464,7 +464,7 @@ final class ChildShellEmitter {
         uv[1] = sine * x + cosine * y + 0.5F;
     }
 
-    /** BlueMap 5.22's UV-lock counter-rotation oracle. */
+    /** BlueMap 5.23 feature-backport's UV-lock counter-rotation oracle. */
     static float uvLockRotation(Direction direction, Variant variant) {
         if (!variant.isTransformed()) {
             return 0F;

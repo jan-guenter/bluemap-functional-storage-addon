@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
+package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap523;
 
 import io.github.janguenter.bluemap.functionalstorage.model.ChildShellCatalog;
 

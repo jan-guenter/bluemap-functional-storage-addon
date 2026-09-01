@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
+package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap523;
 
 import de.bluecolored.bluemap.core.map.TextureGallery;
 import de.bluecolored.bluemap.core.map.hires.MaxCapacityReachedException;
@@ -52,7 +52,10 @@ final class FunctionalStorageRenderer implements BlockRenderer {
         BlockItemDefaultStateResolver itemResolver =
                 BlockItemDefaultStateResolver.createVerified();
         this.materials = itemResolver == null
-                ? null : new BlockMaterialResolver(resourcePack, itemResolver);
+                ? null : new BlockMaterialResolver(
+                        resourcePack, itemResolver,
+                        BlueMap523Adapter.extension(resourcePack)
+                );
     }
 
     @Override
@@ -98,7 +101,7 @@ final class FunctionalStorageRenderer implements BlockRenderer {
         ChildShellCatalog catalog = runtime.catalog();
         List<ChildShellCatalog.Child> children = catalog == null
                 ? null : catalog.children(hostId);
-        InstalledVariants variants = selectedVariants(block, profile);
+        InstalledVariants variants = selectedVariants(block, profile, catalog);
         if (decoded.isEmpty() || profile == null || children == null
                 || children.isEmpty() || variants == null) {
             return false;
@@ -179,20 +182,15 @@ final class FunctionalStorageRenderer implements BlockRenderer {
 
     private InstalledVariants selectedVariants(
             BlockNeighborhood block,
-            FunctionalStorageProfile.Host profile
+            FunctionalStorageProfile.Host profile,
+            ChildShellCatalog catalog
     ) {
-        if (profile == null) {
+        if (profile == null || catalog == null) {
             return null;
         }
-        de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.BlockState raw =
-                resourcePack.getBlockStates().get(block.getBlockState().getId());
-        if (raw == null) {
-            return null;
-        }
-        List<Variant> selected = new ArrayList<>();
-        raw.forEach(
-                block.getBlockState(), block.getX(), block.getY(), block.getZ(),
-                selected::add
+        List<Variant> selected = catalog.selectInstalledVariants(
+                block.getBlockState().getId().getFormatted(),
+                block.getBlockState(), block.getX(), block.getY(), block.getZ()
         );
         return selectedVariants(block.getBlockState(), profile, selected);
     }

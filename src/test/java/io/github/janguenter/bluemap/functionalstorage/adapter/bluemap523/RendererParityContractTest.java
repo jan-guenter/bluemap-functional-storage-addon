@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: MIT
  */
 
-package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
+package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap523;
 
 import de.bluecolored.bluemap.core.map.hires.ArrayTileModel;
 import de.bluecolored.bluemap.core.map.hires.TileModelView;
@@ -232,6 +232,46 @@ class RendererParityContractTest {
         assertTrue(variants.main().isUvlock());
         assertEquals(270F, variants.main().getY(), 0F);
         assertNull(variants.lock());
+    }
+
+    @Test
+    void everyGalleryHostSelectsVariantsFromTheExactInstalledArtifact()
+            throws IOException {
+        ChildShellCatalog catalog = ChildShellCatalog.load(exactArtifact());
+        Map<String, Map<String, String>> states = Map.of(
+                "functionalstorage:framed_1", Map.of(
+                        "facing", "north", "subfacing", "down", "locked", "false"),
+                "functionalstorage:framed_2", Map.of(
+                        "facing", "east", "subfacing", "down", "locked", "true"),
+                "functionalstorage:framed_4", Map.of(
+                        "facing", "south", "subfacing", "up", "locked", "false"),
+                "functionalstorage:compacting_framed_drawer", Map.of(
+                        "facing", "west", "subfacing", "up", "locked", "true"),
+                "functionalstorage:framed_simple_compacting_drawer", Map.of(
+                        "facing", "down", "subfacing", "north", "locked", "false"),
+                "functionalstorage:framed_fluid_1", Map.of(
+                        "facing", "up", "subfacing", "down", "locked", "true"),
+                "functionalstorage:framed_fluid_2", Map.of(
+                        "facing", "down", "subfacing", "east", "locked", "false"),
+                "functionalstorage:framed_fluid_4", Map.of(
+                        "facing", "down", "subfacing", "south", "locked", "true"),
+                "functionalstorage:framed_storage_controller", Map.of(
+                        "subfacing", "west", "locked", "false"),
+                "functionalstorage:framed_controller_extension", Map.of(
+                        "subfacing", "east", "locked", "false")
+        );
+
+        for (Map.Entry<String, Map<String, String>> entry : states.entrySet()) {
+            var state = new de.bluecolored.bluemap.core.world.BlockState(
+                    Key.parse(entry.getKey()), entry.getValue()
+            );
+            List<Variant> selected = catalog.selectInstalledVariants(
+                    entry.getKey(), state, 17, -23, 41
+            );
+            assertTrue(FunctionalStorageRenderer.selectedVariants(
+                    state, FunctionalStorageProfile.HOSTS.get(entry.getKey()), selected
+            ) != null, entry.getKey());
+        }
     }
 
     @Test

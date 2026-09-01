@@ -2,11 +2,15 @@
  * SPDX-License-Identifier: MIT
  */
 
-package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap522;
+package io.github.janguenter.bluemap.functionalstorage.adapter.bluemap523;
 
 import com.flowpowered.math.vector.Vector3f;
 import com.flowpowered.math.vector.Vector4f;
+import de.bluecolored.bluemap.core.map.hires.block.BlockRendererType;
 import de.bluecolored.bluemap.core.resources.ResourcePath;
+import de.bluecolored.bluemap.core.resources.adapter.ResourcesGson;
+import de.bluecolored.bluemap.core.resources.pack.PackVersion;
+import de.bluecolored.bluemap.core.resources.pack.resourcepack.ResourcePack;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.Variant;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.model.Element;
 import de.bluecolored.bluemap.core.resources.pack.resourcepack.model.Face;
@@ -25,17 +29,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class AdapterAndGeometryContractTest {
-
-    @Test
-    void supportsOnlyTwoExactBlueMapIdentities() {
-        assertTrue(AdapterCompatibility.supported(
-                "5.22", "fe5115d5548a30d34175b8e0449aaca280af199f"));
-        assertTrue(AdapterCompatibility.supported(
-                "5.22-agent.backport-5.22-mc1.21.1-2",
-                "9be321df995a1103808621d529eb72773e719d4d"));
-        assertFalse(AdapterCompatibility.supported("5.22", "wrong"));
-        assertFalse(AdapterCompatibility.supported("5.23", "wrong"));
-    }
 
     @Test
     void controllerQuarterTurnTransformsMaterialFaceDirectionOnce() {
@@ -71,6 +64,40 @@ class AdapterAndGeometryContractTest {
                 new Variant(new ResourcePath<Model>("minecraft:block/stone"),
                         0F, 90F, 0F), model));
         assertFalse(BlockMaterialResolver.canonicalVariant(variant, cube(2)));
+    }
+
+    @Test
+    void materialAdmissionRetainsPreWrapperDefaultRendererIdentity() {
+        de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate.BlockState
+                resource = ResourcesGson.INSTANCE.fromJson(
+                        """
+                        {"variants":{"axis=x":{"model":"minecraft:block/stone"}}}
+                        """,
+                        de.bluecolored.bluemap.core.resources.pack.resourcepack.blockstate
+                                .BlockState.class
+        );
+        Variant variant = resource.getVariants().getVariants()[0].getVariants()[0];
+        ResourcePack resourcePack = new ResourcePack(new PackVersion(34, 0));
+        resourcePack.getBlockStates().put(
+                new ResourcePath<>("minecraft:stone"), resource
+        );
+        FunctionalStorageResourceExtension extension =
+                new FunctionalStorageResourceExtension(
+                        resourcePack, FunctionalStorageRuntime.INSTANCE
+                );
+
+        extension.captureOriginalRenderers();
+        BlockRendererType wrapper = BlockRendererType.LIQUID;
+        variant.setRenderer(wrapper);
+
+        assertTrue(extension.originallyRenderedBy(
+                variant, BlockRendererType.DEFAULT));
+        assertFalse(extension.originallyRenderedBy(variant, wrapper));
+        assertFalse(BlockMaterialResolver.canonicalVariant(variant, cube(-1)));
+        assertTrue(BlockMaterialResolver.canonicalVariant(
+                variant, cube(-1),
+                extension.originallyRenderedBy(variant, BlockRendererType.DEFAULT)
+        ));
     }
 
     private static Model cube(int tint) {
