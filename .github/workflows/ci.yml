@@ -55,13 +55,13 @@ jobs:
             "285c9a60eff3ac2b0cab308ce1058d1565be0971"
 
       - name: Set up exact promotion Java 21
-        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6 # v6.0.1
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: temurin
           java-version: ${{ env.PROMOTION_JAVA_VERSION }}
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.13'
 
@@ -78,7 +78,7 @@ jobs:
           bluemap-addon-toolkit conventions check .
 
       - name: Set up Gradle 9.6.1
-        uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+        uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           gradle-version: '9.6.1'
           cache-provider: basic
@@ -153,7 +153,7 @@ jobs:
           SHA256SUMS
 
       - name: Upload review outputs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bluemap-functional-storage-${{ github.sha }}
           path: |
@@ -166,7 +166,7 @@ jobs:
 
       - name: Upload failed-build diagnostics
         if: failure()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bluemap-functional-storage-failure-${{ github.sha }}
           path: |
